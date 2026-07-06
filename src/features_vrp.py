@@ -91,7 +91,7 @@ def build_monthly_rebalance_dataset(df: pd.DataFrame) -> pd.DataFrame:
     Features are observed at month-end.
     Returns are monthly holding-period returns.
     """
-    monthly_prices = df[["equity_price", "bond_price"]].resample("M").last()
+    monthly_prices = df[["equity_price", "bond_price"]].resample("ME").last()
     monthly_returns = monthly_prices.pct_change()
     monthly_returns = monthly_returns.rename(
         columns={
@@ -107,7 +107,7 @@ def build_monthly_rebalance_dataset(df: pd.DataFrame) -> pd.DataFrame:
             "vrp_proxy",
             "implied_vol_index",
         ]
-    ].resample("M").last()
+    ].resample("ME").last()
 
     monthly = pd.concat([monthly_features, monthly_returns], axis=1)
     monthly = monthly.dropna()
