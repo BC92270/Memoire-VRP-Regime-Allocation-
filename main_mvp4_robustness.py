@@ -9,12 +9,14 @@ from src.config import (
 )
 from src.robustness import (
     no_trade_band_sensitivity,
+    partial_rebalancing_sensitivity,
     transaction_cost_sensitivity,
 )
 
 
 COST_BPS_GRID = [0, 5, 10, 25, 50]
 NO_TRADE_BANDS = [0.00, 0.02, 0.05, 0.10]
+ADJUSTMENT_SPEEDS = [1.00, 0.75, 0.50, 0.25, 0.10]
 
 # Pure VRP is not initially netted the same way as the other strategies.
 NO_ADDBACK_COLUMNS = ["Pure VRP Proxy"]
@@ -151,11 +153,66 @@ def run_no_trade_band_robustness(market: str = "us") -> None:
     print(sharpe_path)
     print(turnover_path)
 
+def run_partial_rebalancing_robustness(market: str = "us") -> None:
+    market = market.lower()
+
+    monthly_path = DATA_PROCESSED_DIR / f"{market}_monthly_rebalance.csv"
+
+    if not monthly_path.exists():
+        raise FileNotFoundError(f"Missing monthly data: {monthly_path}")
+
+    monthly = pd.read_csv(monthly_path, index_col=0, parse_dates=True)
+    diagnostics = load_dynamic_diagnostics()
+
+    long_summary, sharpe_pivot, turnover_pivot, maxdd_pivot = partial_rebalancing_sensitivity(
+        monthly=monthly,
+        diagnostics_by_strategy=diagnostics,
+        adjustment_speeds=ADJUSTMENT_SPEEDS,
+        cost_bps=BASE_TRANSACTION_COST_BPS,
+        periods_per_year=12,
+    )
+
+    long_path = OUTPUT_TABLES_DIR / f"{market}_mvp4_partial_rebalancing_long.csv"
+    sharpe_path = OUTPUT_TABLES_DIR / f"{market}_mvp4_partial_rebalancing_sharpe.csv"
+    turnover_path = OUTPUT_TABLES_DIR / f"{market}_mvp4_partial_rebalancing_turnover.csv"
+    maxdd_path = OUTPUT_TABLES_DIR / f"{market}_mvp4_partial_rebalancing_max_drawdown.csv"
+
+    long_summary.to_csv(long_path, index=False)
+    sharpe_pivot.to_csv(sharpe_path)
+    turnover_pivot.to_csv(turnover_path)
+    maxdd_pivot.to_csv(maxdd_path)
+
+    pd.set_option("display.max_columns", None)
+    pd.set_option("display.width", 250)
+
+    print("\n" + "=" * 100)
+    print("MVP 4C — Partial rebalancing sensitivity: Sharpe")
+    print("=" * 100)
+    print(sharpe_pivot.round(4).to_string())
+
+    print("\n" + "=" * 100)
+    print("MVP 4C — Partial rebalancing sensitivity: Avg Turnover")
+    print("=" * 100)
+    print(turnover_pivot.round(4).to_string())
+
+    print("\n" + "=" * 100)
+    print("MVP 4C — Partial rebalancing sensitivity: Max Drawdown")
+    print("=" * 100)
+    print(maxdd_pivot.round(4).to_string())
+
+    print("\nSaved partial rebalancing files:")
+    print(long_path)
+    print(sharpe_path)
+    print(turnover_path)
+    print(maxdd_path)
+
 
 def main() -> None:
     run_transaction_cost_robustness("us")
     run_no_trade_band_robustness("us")
+    run_partial_rebalancing_robustness("us")
 
 
 if __name__ == "__main__":
     main()
+

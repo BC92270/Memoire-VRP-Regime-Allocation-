@@ -282,3 +282,188 @@ def no_trade_band_sensitivity(
     )
 
     return long_summary, sharpe_pivot, turnover_pivot
+
+
+def simulate_smoothed_dynamic_target_weight_strategy(
+    monthly: pd.DataFrame,
+    diagnostics: pd.DataFrame,
+    strategy_name: str,
+    cost_bps: float = 10.0,
+    adjustment_speed: float = 1.0,
+) -> tuple[pd.Series, pd.Series, pd.DataFrame]:
+    """
+    Re-simulates a dynamic allocation strategy using partial rebalancing.
+
+    adjustment_speed:
+        1.00 = full rebalance to target weights
+        0.50 = move halfway toward target weights
+        0.25 = slow adjustment
+        0.10 = very strong smoothing
+
+    The objective is to reduce turnover while preserving the model's signal.
+    """
+    if adjustment_speed <= 0 or adjustment_speed > 1:
+        raise ValueError("adjustment_speed must be in (0, 1].")
+
+    required_diag_cols = ["equity_weight", "bond_weight"]
+    required_monthly_cols = ["equity_ret", "bond_ret"]
+
+    for col in required_diag_cols:
+        if col not in diagnostics.columns:
+            raise ValueError(f"Missing diagnostics column: {col}")
+
+    for col in required_monthly_cols:
+        if col not in monthly.columns:
+            raise ValueError(f"Missing monthly column: {col}")
+
+    target_weights = diagnostics[required_diag_cols].dropna().copy()
+    asset_returns = monthly[required_monthly_cols].reindex(target_weights.index).dropna()
+
+    target_weights = target_weights.reindex(asset_returns.index).dropna()
+
+    if target_weights.empty:
+        raise ValueError(f"No overlapping target weights and monthly returns for {strategy_name}")
+
+    cost_rate = cost_bps / 10_000.0
+
+    portfolio_returns = []
+    turnovers = []
+    records = []
+
+    current_pre_trade_weights = None
+
+    for date, target_row in target_weights.iterrows():
+        asset_ret = asset_returns.loc[date].astype(float)
+
+        target = pd.Series(
+            {
+                "equity_ret": float(target_row["equity_weight"]),
+                "bond_ret": float(target_row["bond_weight"]),
+            },
+            dtype=float,
+        )
+
+        target = target / target.sum()
+
+        if current_pre_trade_weights is None:
+            trade_weights = target.copy()
+            turnover = float(trade_weights.abs().sum())
+        else:
+            trade_weights = (
+                adjustment_speed * target
+                + (1.0 - adjustment_speed) * current_pre_trade_weights
+            )
+            trade_weights = trade_weights / trade_weights.sum()
+
+            turnover = float((trade_weights - current_pre_trade_weights).abs().sum())
+
+        gross_return = float((trade_weights * asset_ret).sum())
+        net_return = float(gross_return - cost_rate * turnover)
+
+        denominator = 1.0 + gross_return
+
+        if denominator <= 0:
+            current_pre_trade_weights = target.copy()
+        else:
+            current_pre_trade_weights = trade_weights * (1.0 + asset_ret)
+            current_pre_trade_weights = current_pre_trade_weights / denominator
+
+        portfolio_returns.append((date, net_return))
+        turnovers.append((date, turnover))
+
+        records.append(
+            {
+                "date": date,
+                "strategy": strategy_name,
+                "adjustment_speed": adjustment_speed,
+                "cost_bps": cost_bps,
+                "target_equity_weight": target["equity_ret"],
+                "traded_equity_weight": trade_weights["equity_ret"],
+                "target_bond_weight": target["bond_ret"],
+                "traded_bond_weight": trade_weights["bond_ret"],
+                "turnover": turnover,
+                "gross_return": gross_return,
+                "net_return": net_return,
+            }
+        )
+
+    ret_series = pd.Series(
+        data=[x[1] for x in portfolio_returns],
+        index=[x[0] for x in portfolio_returns],
+        name=strategy_name,
+    )
+
+    turnover_series = pd.Series(
+        data=[x[1] for x in turnovers],
+        index=[x[0] for x in turnovers],
+        name=strategy_name,
+    )
+
+    weights = pd.DataFrame(records).set_index("date")
+
+    return ret_series, turnover_series, weights
+
+
+def partial_rebalancing_sensitivity(
+    monthly: pd.DataFrame,
+    diagnostics_by_strategy: dict[str, pd.DataFrame],
+    adjustment_speeds: list[float],
+    cost_bps: float = 10.0,
+    periods_per_year: int = 12,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Tests partial rebalancing / weight smoothing on stored HMM/RSM target weights.
+    """
+    summaries = []
+
+    for speed in adjustment_speeds:
+        strategy_returns = {}
+        strategy_turnovers = {}
+
+        for strategy_name, diag in diagnostics_by_strategy.items():
+            ret, turn, _weights = simulate_smoothed_dynamic_target_weight_strategy(
+                monthly=monthly,
+                diagnostics=diag,
+                strategy_name=strategy_name,
+                cost_bps=cost_bps,
+                adjustment_speed=speed,
+            )
+
+            strategy_returns[strategy_name] = ret
+            strategy_turnovers[strategy_name] = turn
+
+        returns_df = pd.DataFrame(strategy_returns).dropna(how="all")
+        turnovers_df = pd.DataFrame(strategy_turnovers).reindex(returns_df.index)
+
+        summary = summarize_strategies(
+            returns_df,
+            turnovers=turnovers_df,
+            periods_per_year=periods_per_year,
+        )
+
+        summary.insert(0, "Adjustment speed", speed)
+        summary.insert(1, "Strategy", summary.index)
+
+        summaries.append(summary.reset_index(drop=True))
+
+    long_summary = pd.concat(summaries, axis=0, ignore_index=True)
+
+    sharpe_pivot = long_summary.pivot(
+        index="Strategy",
+        columns="Adjustment speed",
+        values="Sharpe",
+    )
+
+    turnover_pivot = long_summary.pivot(
+        index="Strategy",
+        columns="Adjustment speed",
+        values="Avg Turnover",
+    )
+
+    maxdd_pivot = long_summary.pivot(
+        index="Strategy",
+        columns="Adjustment speed",
+        values="Max Drawdown",
+    )
+
+    return long_summary, sharpe_pivot, turnover_pivot, maxdd_pivot
