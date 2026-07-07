@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import pandas as pd
 
 from src.config import (
@@ -20,8 +21,48 @@ HMM_FEATURE_SPECS = {
     "HMM IV": ["equity_ret", "log_iv_ann"],
     "HMM IV + Log VRP": ["equity_ret", "log_iv_ann", "log_iv_rv"],
     "HMM RV + IV": ["equity_ret", "log_rv_ann", "log_iv_ann"],
-    "HMM RV + IV + Log VRP": ["equity_ret", "log_rv_ann", "log_iv_ann", "log_iv_rv"],
+    "HMM RV + IV + Log VRP": [
+        "equity_ret",
+        "log_rv_ann",
+        "log_iv_ann",
+        "log_iv_rv",
+    ],
 }
+
+
+def _safe_name(name: str) -> str:
+    """
+    Converts strategy names into stable file-safe names.
+
+    Example:
+        HMM RV + Log VRP -> hmm_rv_plus_log_vrp
+    """
+    return (
+        name.lower()
+        .replace(" ", "_")
+        .replace("/", "_")
+        .replace("+", "plus")
+        .replace("-", "_")
+        .replace("__", "_")
+    )
+
+
+def _validate_required_columns(monthly: pd.DataFrame, specs: dict[str, list[str]]) -> None:
+    """
+    Ensures all features required by the HMM grid exist in the monthly dataset.
+    """
+    required = set()
+
+    for features in specs.values():
+        required.update(features)
+
+    missing = sorted([col for col in required if col not in monthly.columns])
+
+    if missing:
+        raise ValueError(
+            "Missing required columns in monthly dataset: "
+            f"{missing}. Run main_mvp1.py again after updating features_vrp.py."
+        )
 
 
 def run_hmm_spec_grid(market: str = "us") -> None:
@@ -40,16 +81,24 @@ def run_hmm_spec_grid(market: str = "us") -> None:
     print(f"Running HMM specification grid for {market.upper()}")
     print("=" * 80)
     print(f"Monthly dataset shape: {monthly.shape}")
-    print(f"Date range: {monthly.index.min().date()} → {monthly.index.max().date()}")
+
+    if not monthly.empty:
+        print(f"Date range: {monthly.index.min().date()} → {monthly.index.max().date()}")
+
+    _validate_required_columns(monthly, HMM_FEATURE_SPECS)
 
     benchmark_returns, benchmark_turnovers = build_benchmark_strategies(
         monthly,
         transaction_cost_bps=BASE_TRANSACTION_COST_BPS,
     )
 
+    # US and EU now both have enough observations for a 72-month rolling window.
+    # If the EU sample becomes short again, reduce only here, not inside src/hmm_models.py.
+    train_window = 72
+
     hmm_config = HMMBacktestConfig(
         n_components=2,
-        train_window=72,
+        train_window=train_window,
         covariance_type="diag",
         n_iter=300,
         tol=1e-3,
@@ -79,6 +128,9 @@ def run_hmm_spec_grid(market: str = "us") -> None:
         diagnostic_rows[strategy_name] = {
             "features": ", ".join(features),
             "obs": diag.shape[0],
+            "convergence_rate": diag["converged"].mean()
+            if "converged" in diag.columns
+            else None,
             "avg_stress_probability": diag["stress_probability"].mean(),
             "median_stress_probability": diag["stress_probability"].median(),
             "p95_stress_probability": diag["stress_probability"].quantile(0.95),
@@ -89,8 +141,9 @@ def run_hmm_spec_grid(market: str = "us") -> None:
             "avg_turnover": diag["turnover"].mean(),
         }
 
-        safe_name = strategy_name.lower().replace(" ", "_").replace("/", "_").replace("+", "plus")
-        diag.to_csv(OUTPUT_TABLES_DIR / f"{market}_hmm_grid_{safe_name}_diagnostics.csv")
+        safe_name = _safe_name(strategy_name)
+        diag_path = OUTPUT_TABLES_DIR / f"{market}_hmm_grid_{safe_name}_diagnostics.csv"
+        diag.to_csv(diag_path)
 
     hmm_returns_df = pd.DataFrame(hmm_returns)
     hmm_turnovers_df = pd.DataFrame(hmm_turnovers)
@@ -100,6 +153,7 @@ def run_hmm_spec_grid(market: str = "us") -> None:
         all_returns.index
     )
 
+    # Align all strategies on the HMM out-of-sample dates.
     hmm_index = hmm_returns_df.dropna(how="all").index
 
     aligned_returns = all_returns.reindex(hmm_index).dropna(how="all")
@@ -123,15 +177,19 @@ def run_hmm_spec_grid(market: str = "us") -> None:
     aligned_returns.to_csv(returns_path)
     aligned_turnovers.to_csv(turnovers_path)
 
+    pd.set_option("display.max_columns", None)
+    pd.set_option("display.width", 250)
+    pd.set_option("display.max_colwidth", 100)
+
     print("\n" + "=" * 80)
     print("Aligned HMM grid performance summary")
     print("=" * 80)
-    print(aligned_summary.round(4))
+    print(aligned_summary.round(4).to_string())
 
     print("\n" + "=" * 80)
     print("HMM grid diagnostic summary")
     print("=" * 80)
-    print(diagnostic_summary.round(4))
+    print(diagnostic_summary.round(4).to_string())
 
     print("\nSaved files:")
     print(performance_path)
@@ -141,4 +199,5 @@ def run_hmm_spec_grid(market: str = "us") -> None:
 
 
 if __name__ == "__main__":
-    run_hmm_spec_grid("us")
+    selected_market = sys.argv[1] if len(sys.argv) > 1 else "us"
+    run_hmm_spec_grid(selected_market)

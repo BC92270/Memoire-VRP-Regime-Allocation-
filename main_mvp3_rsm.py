@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import sys
 
 from src.benchmarks import build_benchmark_strategies
 from src.config import (
@@ -130,4 +131,5 @@ def run_mvp3_rsm(market: str = "us") -> None:
 
 
 if __name__ == "__main__":
-    run_mvp3_rsm("us")
+    market = sys.argv[1] if len(sys.argv) > 1 else "us"
+    run_mvp3_rsm(market)

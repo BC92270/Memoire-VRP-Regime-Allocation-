@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import sys
 
 from src.config import OUTPUT_CHARTS_DIR, OUTPUT_TABLES_DIR
 from src.plots import (
@@ -161,4 +162,5 @@ def run_mvp1_diagnostics(market: str = "us") -> None:
 
 
 if __name__ == "__main__":
-    run_mvp1_diagnostics("us")
+    market = sys.argv[1] if len(sys.argv) > 1 else "us"
+    run_mvp1_diagnostics(market)

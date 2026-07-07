@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -25,8 +27,8 @@ CORE_MODELS = [
 def load_outputs(market: str = "us") -> tuple[pd.DataFrame, pd.DataFrame]:
     market = market.lower()
 
-    hmm_returns_path = OUTPUT_TABLES_DIR / f"{market}_selected_hmm_returns.csv"
-    hmm_turnovers_path = OUTPUT_TABLES_DIR / f"{market}_selected_hmm_turnovers.csv"
+    hmm_returns_path = OUTPUT_TABLES_DIR / f"{market}_hmm_grid_strategy_returns.csv"
+    hmm_turnovers_path = OUTPUT_TABLES_DIR / f"{market}_hmm_grid_turnovers.csv"
 
     rsm_returns_path = OUTPUT_TABLES_DIR / f"{market}_mvp3_rsm_strategy_returns.csv"
     rsm_turnovers_path = OUTPUT_TABLES_DIR / f"{market}_mvp3_rsm_turnovers.csv"
@@ -59,7 +61,6 @@ def load_outputs(market: str = "us") -> tuple[pd.DataFrame, pd.DataFrame]:
     returns = returns[CORE_MODELS]
     turnovers = turnovers[CORE_MODELS]
 
-    # Align all strategies on common dates.
     aligned_returns = returns.dropna(how="any")
     aligned_turnovers = turnovers.reindex(aligned_returns.index)
 
@@ -69,13 +70,14 @@ def load_outputs(market: str = "us") -> tuple[pd.DataFrame, pd.DataFrame]:
 def plot_core_cumulative_returns(
     returns: pd.DataFrame,
     output_path,
+    market: str,
 ) -> None:
     wealth = (1.0 + returns).cumprod()
 
     fig, ax = plt.subplots(figsize=(13, 8))
     wealth.plot(ax=ax)
 
-    ax.set_title("US - Core Model Comparison: Cumulative Wealth")
+    ax.set_title(f"{market.upper()} - Core Model Comparison: Cumulative Wealth")
     ax.set_xlabel("Date")
     ax.set_ylabel("Cumulative wealth")
     ax.grid(True, alpha=0.3)
@@ -88,6 +90,7 @@ def plot_core_cumulative_returns(
 def plot_core_drawdowns(
     returns: pd.DataFrame,
     output_path,
+    market: str,
 ) -> None:
     wealth = (1.0 + returns).cumprod()
     drawdowns = wealth / wealth.cummax() - 1.0
@@ -95,7 +98,7 @@ def plot_core_drawdowns(
     fig, ax = plt.subplots(figsize=(13, 8))
     drawdowns.plot(ax=ax)
 
-    ax.set_title("US - Core Model Comparison: Drawdowns")
+    ax.set_title(f"{market.upper()} - Core Model Comparison: Drawdowns")
     ax.set_xlabel("Date")
     ax.set_ylabel("Drawdown")
     ax.grid(True, alpha=0.3)
@@ -108,11 +111,8 @@ def plot_core_drawdowns(
 def plot_reduced_cumulative_returns(
     returns: pd.DataFrame,
     output_path,
+    market: str,
 ) -> None:
-    """
-    Cleaner chart for the thesis: removes Pure VRP Proxy because it dominates visually
-    and is only a synthetic proxy at this stage.
-    """
     reduced_cols = [
         "Buy-and-Hold Equity",
         "60/40",
@@ -126,7 +126,7 @@ def plot_reduced_cumulative_returns(
     fig, ax = plt.subplots(figsize=(13, 8))
     wealth.plot(ax=ax)
 
-    ax.set_title("US - Selected Implementable Strategies: Cumulative Wealth")
+    ax.set_title(f"{market.upper()} - Selected Implementable Strategies: Cumulative Wealth")
     ax.set_xlabel("Date")
     ax.set_ylabel("Cumulative wealth")
     ax.grid(True, alpha=0.3)
@@ -137,6 +137,8 @@ def plot_reduced_cumulative_returns(
 
 
 def run_core_comparison(market: str = "us") -> None:
+    market = market.lower()
+
     returns, turnovers = load_outputs(market)
 
     summary = summarize_strategies(
@@ -158,23 +160,26 @@ def run_core_comparison(market: str = "us") -> None:
     plot_core_cumulative_returns(
         returns,
         OUTPUT_CHARTS_DIR / f"{market}_core_model_cumulative_returns.png",
+        market=market,
     )
 
     plot_core_drawdowns(
         returns,
         OUTPUT_CHARTS_DIR / f"{market}_core_model_drawdowns.png",
+        market=market,
     )
 
     plot_reduced_cumulative_returns(
         returns,
         OUTPUT_CHARTS_DIR / f"{market}_core_model_reduced_cumulative_returns.png",
+        market=market,
     )
 
     pd.set_option("display.max_columns", None)
     pd.set_option("display.width", 250)
 
     print("\n" + "=" * 100)
-    print("Core model performance summary")
+    print(f"{market.upper()} — Core model performance summary")
     print("=" * 100)
     print(summary.round(4).to_string())
 
@@ -188,4 +193,5 @@ def run_core_comparison(market: str = "us") -> None:
 
 
 if __name__ == "__main__":
-    run_core_comparison("us")
+    selected_market = sys.argv[1] if len(sys.argv) > 1 else "us"
+    run_core_comparison(selected_market)
