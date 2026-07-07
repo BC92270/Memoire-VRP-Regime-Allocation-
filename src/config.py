@@ -31,7 +31,8 @@ MARKET_CONFIGS = {
     "EU": {
         "equity_candidates": ["^STOXX50E", "FEZ"],
         "vol_candidates": ["^V2TX", "V2TX.DE", "VSTOXX.DE", "^VSTOXX"],
-        "bond_candidates": ["AGG", "BNDX", "IEF"],
+        "manual_vol_csv": DATA_RAW_DIR / "vstoxx.csv",
+        "bond_candidates": ["IEAG.AS", "EUNA.DE", "AGGH.L", "BNDX", "AGG", "IEF"],
     },
 }
 

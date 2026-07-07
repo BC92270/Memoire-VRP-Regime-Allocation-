@@ -83,7 +83,7 @@ def main() -> None:
     successful_markets = []
     failed_markets = {}
 
-    for market_name, market_config in {"US": MARKET_CONFIGS["US"]}.items():
+    for market_name, market_config in MARKET_CONFIGS.items():
         try:
             run_market_pipeline(market_name, market_config)
             successful_markets.append(market_name)
