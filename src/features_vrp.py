@@ -51,14 +51,27 @@ def add_implied_variance(df: pd.DataFrame) -> pd.DataFrame:
 
 def add_vrp_proxy(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Baseline VRP proxy:
-        VRP = implied variance - past realized variance
+    Baseline VRP proxies.
 
-    This is a signal proxy, not a perfect tradable variance swap return.
+    vrp_proxy:
+        IV - past RV
+
+    log_iv_rv:
+        log(IV / RV), closer to a log variance premium representation.
+
+    These are signal proxies, not fully tradable variance swap returns.
     """
     out = df.copy()
 
+    eps = 1e-8
+
     out["vrp_proxy"] = out["iv_ann"] - out["rv_ann"]
+
+    out["log_rv_ann"] = np.log(out["rv_ann"].clip(lower=eps))
+    out["log_iv_ann"] = np.log(out["iv_ann"].clip(lower=eps))
+    out["log_iv_rv"] = np.log(
+        out["iv_ann"].clip(lower=eps) / out["rv_ann"].clip(lower=eps)
+    )
 
     return out
 
@@ -105,6 +118,9 @@ def build_monthly_rebalance_dataset(df: pd.DataFrame) -> pd.DataFrame:
             "rv_ann",
             "iv_ann",
             "vrp_proxy",
+            "log_rv_ann",
+            "log_iv_ann",
+            "log_iv_rv",
             "implied_vol_index",
         ]
     ].resample("ME").last()
