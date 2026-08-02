@@ -47,19 +47,77 @@ def sharpe_ratio(returns: pd.Series, periods_per_year: int = 12) -> float:
     return float((returns.mean() / vol) * np.sqrt(periods_per_year))
 
 
-def sortino_ratio(returns: pd.Series, periods_per_year: int = 12) -> float:
+def sortino_ratio(
+    returns: pd.Series,
+    periods_per_year: int = 12,
+    minimum_acceptable_return: float = 0.0,
+) -> float:
+    """
+    Annualized Sortino ratio using target downside deviation.
+
+    Parameters
+    ----------
+    returns:
+        Periodic strategy returns.
+    periods_per_year:
+        Number of return periods per year.
+    minimum_acceptable_return:
+        Minimum acceptable return per observation period.
+        The project uses a zero monthly target by default.
+
+    Notes
+    -----
+    Downside deviation is calculated across the complete sample:
+
+        sqrt(mean(min(return - MAR, 0)^2))
+
+    Positive observations therefore contribute zero downside rather
+    than being removed from the denominator.
+    """
     returns = returns.dropna()
-    downside = returns[returns < 0]
 
-    if downside.empty:
+    if returns.empty:
         return np.nan
 
-    downside_vol = downside.std(ddof=1)
+    excess_returns = (
+        returns
+        - minimum_acceptable_return
+    )
 
-    if downside_vol == 0 or np.isnan(downside_vol):
+    downside_returns = np.minimum(
+        excess_returns.to_numpy(
+            dtype=float
+        ),
+        0.0,
+    )
+
+    downside_deviation = float(
+        np.sqrt(
+            np.mean(
+                np.square(
+                    downside_returns
+                )
+            )
+        )
+    )
+
+    if (
+        downside_deviation == 0.0
+        or np.isnan(
+            downside_deviation
+        )
+    ):
         return np.nan
 
-    return float((returns.mean() / downside_vol) * np.sqrt(periods_per_year))
+    return float(
+        (
+            excess_returns.mean()
+            / downside_deviation
+        )
+        * np.sqrt(
+            periods_per_year
+        )
+    )
 
 
 def calmar_ratio(returns: pd.Series, periods_per_year: int = 12) -> float:
