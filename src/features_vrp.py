@@ -4,14 +4,46 @@ import numpy as np
 import pandas as pd
 
 
-def add_return_columns(df: pd.DataFrame) -> pd.DataFrame:
+def add_return_columns(
+    df: pd.DataFrame,
+    max_gap_days: int = 7,
+) -> pd.DataFrame:
     """
     Adds daily log returns for equity and bond series.
-    """
-    out = df.copy()
 
-    out["equity_log_ret"] = np.log(out["equity_price"] / out["equity_price"].shift(1))
-    out["bond_log_ret"] = np.log(out["bond_price"] / out["bond_price"].shift(1))
+    Returns spanning an abnormally long calendar interruption are
+    invalidated. This prevents a multi-month data gap from being treated
+    as a one-day return and contaminating rolling realized variance.
+    """
+    out = df.copy().sort_index()
+
+    out["equity_log_ret"] = np.log(
+        out["equity_price"]
+        / out["equity_price"].shift(1)
+    )
+
+    out["bond_log_ret"] = np.log(
+        out["bond_price"]
+        / out["bond_price"].shift(1)
+    )
+
+    calendar_gap_days = (
+        out.index.to_series()
+        .diff()
+        .dt.days
+    )
+
+    long_gap = calendar_gap_days.gt(
+        max_gap_days
+    )
+
+    out.loc[
+        long_gap,
+        [
+            "equity_log_ret",
+            "bond_log_ret",
+        ],
+    ] = np.nan
 
     return out
 
@@ -84,7 +116,10 @@ def build_daily_feature_set(
     """
     Full daily feature pipeline.
     """
-    out = add_return_columns(df)
+    out = add_return_columns(
+        df,
+        max_gap_days=7,
+    )
     out = add_realized_variance(
         out,
         window=rv_window,

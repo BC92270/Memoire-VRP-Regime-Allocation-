@@ -201,7 +201,33 @@ def read_manual_close_csv(
             f"Could not find a price/close column in {path}. Columns found: {list(df.columns)}"
         )
 
-    dates = pd.to_datetime(df[date_col], errors="coerce", dayfirst=True)
+    raw_dates = df[date_col].astype(str).str.strip()
+
+    # ISO dates such as YYYY-MM-DD must not be parsed with dayfirst=True.
+    iso_mask = raw_dates.str.fullmatch(
+        r"\d{4}-\d{1,2}-\d{1,2}"
+    )
+
+    dates = pd.Series(
+        pd.NaT,
+        index=df.index,
+        dtype="datetime64[ns]",
+    )
+
+    dates.loc[iso_mask] = pd.to_datetime(
+        raw_dates.loc[iso_mask],
+        format="%Y-%m-%d",
+        errors="coerce",
+    )
+
+    # Retain flexible parsing for European-formatted manual files.
+    dates.loc[~iso_mask] = pd.to_datetime(
+        raw_dates.loc[~iso_mask],
+        format="mixed",
+        errors="coerce",
+        dayfirst=True,
+    )
+
     values = _clean_numeric_series(df[price_col])
 
     out = pd.Series(values.values, index=dates, name=series_name)
