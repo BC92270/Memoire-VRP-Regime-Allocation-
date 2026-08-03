@@ -9,13 +9,13 @@ for path in [ABSTRACT, CLEAN_THESIS]:
     if not path.exists():
         raise FileNotFoundError(f"Missing file: {path}")
 
-title_page = """# Master Thesis Draft
+title_page = """# Master Thesis
 
 ## Variance Risk Premium and Regime-Based Allocation
 
-### Direct VRP Exposure versus Informational Regime Signal
+### Informational Allocation versus Model-Based Direct Variance Carry
 
-This document contains the full thesis draft package, including abstract, keywords, literature review, methodology, empirical results, robustness analysis, limitations and conclusion.
+This document contains the complete thesis, including the abstract, keywords, literature review, methodology, empirical results, robustness analysis, limitations and conclusion.
 
 ---
 """

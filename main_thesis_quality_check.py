@@ -1,114 +1,293 @@
+from __future__ import annotations
+
 from pathlib import Path
 import re
-from collections import Counter
+import sys
 
-THESIS_PATH = Path("thesis/full_thesis_draft.md")
-OUT_PATH = Path("thesis/thesis_quality_check.md")
 
-text = THESIS_PATH.read_text(encoding="utf-8")
+THESIS_PATH = Path(
+    "thesis/final_thesis_package.md"
+)
+
+OUT_PATH = Path(
+    "thesis/thesis_quality_check.md"
+)
+
+WORD_RE = re.compile(
+    r"\b[\w'-]+\b"
+)
+
+BAD_GLUED_HEADING_RE = re.compile(
+    r"[^\n]# Chapter"
+)
+
+
+def normalize(
+    text: str,
+) -> str:
+    return (
+        text
+        .replace("−", "-")
+        .replace("–", "-")
+        .replace("—", "-")
+        .replace("\u00a0", " ")
+        .lower()
+    )
+
+
+if not THESIS_PATH.exists():
+    raise FileNotFoundError(
+        THESIS_PATH
+    )
+
+text = THESIS_PATH.read_text(
+    encoding="utf-8"
+)
+
+normalized = normalize(text)
 lines = text.splitlines()
 
-word_count = len(re.findall(r"\b[\w'-]+\b", text))
-char_count = len(text)
-line_count = len(lines)
+errors: list[str] = []
+warnings: list[str] = []
 
-headings = []
-for i, line in enumerate(lines, start=1):
-    if line.startswith("#"):
-        level = len(line) - len(line.lstrip("#"))
-        title = line.lstrip("#").strip()
-        headings.append((i, level, title))
 
-heading_titles = [h[2] for h in headings]
-duplicates = {k: v for k, v in Counter(heading_titles).items() if v > 1}
-
-flags = {
-    "Draft mentions": [],
-    "TODO/FIXME mentions": [],
-    "Possible placeholder text": [],
-    "Code-fence issues": [],
-}
-
-for i, line in enumerate(lines, start=1):
-    low = line.lower()
-    if "draft" in low:
-        flags["Draft mentions"].append((i, line))
-    if "todo" in low or "fixme" in low:
-        flags["TODO/FIXME mentions"].append((i, line))
-    if "lorem ipsum" in low or "placeholder" in low:
-        flags["Possible placeholder text"].append((i, line))
-
-code_fences = [i for i, line in enumerate(lines, start=1) if line.strip().startswith("```")]
-if len(code_fences) % 2 != 0:
-    flags["Code-fence issues"].append(("Unclosed code fence", f"{len(code_fences)} fence markers found"))
-
-chapter_markers = [
-    "Introduction Draft",
-    "Chapter 1",
-    "Chapter 2",
-    "Chapter 3",
-    "Chapter 4",
-    "Chapter 5",
+required_markers = [
+    "# Master Thesis",
+    (
+        "## Variance Risk Premium "
+        "and Regime-Based Allocation"
+    ),
+    (
+        "Informational Allocation versus "
+        "Model-Based Direct Variance Carry"
+    ),
+    "# Abstract and Keywords",
+    "# Introduction",
+    "# Chapter 1",
+    "# Chapter 2",
+    "# Chapter 3",
+    "# Chapter 4",
+    "# Chapter 5",
+    (
+        "model-based direct "
+        "variance-payoff approximation"
+    ),
+    "13.08%",
+    "1.324",
+    "927 basis points",
+    "899 basis points",
+    (
+        "depends critically on "
+        "the payoff structure"
+    ),
 ]
 
-missing_markers = [m for m in chapter_markers if m not in text]
+for marker in required_markers:
+    if normalize(marker) not in normalized:
+        errors.append(
+            f"Missing required marker: {marker}"
+        )
 
-report = []
-report.append("# Thesis Quality Check")
-report.append("")
-report.append("## 1. File statistics")
-report.append("")
-report.append(f"- File: `{THESIS_PATH}`")
-report.append(f"- Lines: {line_count}")
-report.append(f"- Words: {word_count}")
-report.append(f"- Characters: {char_count}")
-report.append("")
-report.append("## 2. Chapter marker check")
-report.append("")
-if missing_markers:
-    for m in missing_markers:
-        report.append(f"- Missing marker: `{m}`")
+
+forbidden_markers = [
+    "collapses in Europe",
+    "collapses in the European",
+    "-2.8511",
+    "-0.3625",
+    "-0.9901",
+    "0.1281",
+    "127 observations",
+    "200 monthly observations",
+    (
+        "more useful as a "
+        "regime-state variable"
+    ),
+    (
+        "best understood as a conditional "
+        "market-state signal"
+    ),
+]
+
+for marker in forbidden_markers:
+    if normalize(marker) in normalized:
+        errors.append(
+            f"Stale empirical marker found: "
+            f"{marker}"
+        )
+
+
+draft_lines = [
+    (line_number, line)
+    for line_number, line
+    in enumerate(lines, start=1)
+    if "draft" in line.lower()
+]
+
+for line_number, line in draft_lines:
+    errors.append(
+        f"Draft wording at line "
+        f"{line_number}: {line}"
+    )
+
+
+for line_number, line in enumerate(
+    lines,
+    start=1,
+):
+    if line.endswith((" ", "\t")):
+        errors.append(
+            f"Trailing whitespace at "
+            f"line {line_number}"
+        )
+
+
+code_fences = [
+    line_number
+    for line_number, line
+    in enumerate(lines, start=1)
+    if line.strip().startswith("```")
+]
+
+if len(code_fences) % 2 != 0:
+    errors.append(
+        "Unclosed Markdown code fence: "
+        f"{len(code_fences)} markers found"
+    )
+
+
+bad_glued_headings = list(
+    BAD_GLUED_HEADING_RE.finditer(text)
+)
+
+if bad_glued_headings:
+    errors.append(
+        "Glued chapter heading detected"
+    )
+
+
+headings = [
+    (
+        line_number,
+        len(line) - len(line.lstrip("#")),
+        line.lstrip("#").strip(),
+    )
+    for line_number, line
+    in enumerate(lines, start=1)
+    if line.startswith("#")
+]
+
+
+word_count = len(
+    WORD_RE.findall(text)
+)
+
+character_count = len(text)
+line_count = len(lines)
+
+
+report: list[str] = [
+    "# Final Thesis Quality Check",
+    "",
+    "## 1. Audited file",
+    "",
+    f"- File: `{THESIS_PATH}`",
+    f"- Lines: {line_count}",
+    f"- Words: {word_count}",
+    f"- Characters: {character_count}",
+    f"- Headings: {len(headings)}",
+    f"- Draft mentions: {len(draft_lines)}",
+    (
+        "- Bad glued chapter headings: "
+        f"{len(bad_glued_headings)}"
+    ),
+    "",
+    "## 2. Warnings",
+    "",
+]
+
+if warnings:
+    report.extend(
+        f"- {warning}"
+        for warning in warnings
+    )
 else:
-    report.append("- All expected chapter markers found.")
-report.append("")
-report.append("## 3. Heading structure")
-report.append("")
-for line_no, level, title in headings:
-    indent = "  " * (level - 1)
-    report.append(f"{indent}- L{line_no}: {'#' * level} {title}")
-report.append("")
-report.append("## 4. Duplicate headings")
-report.append("")
-if duplicates:
-    for title, count in duplicates.items():
-        report.append(f"- `{title}` appears {count} times")
+    report.append("- None")
+
+report.extend([
+    "",
+    "## 3. Errors",
+    "",
+])
+
+if errors:
+    report.extend(
+        f"- {error}"
+        for error in errors
+    )
 else:
-    report.append("- No duplicate heading titles detected.")
-report.append("")
-report.append("## 5. Flags")
-report.append("")
-for category, items in flags.items():
-    report.append(f"### {category}")
-    report.append("")
-    if not items:
-        report.append("- None detected.")
-    else:
-        for item in items[:50]:
-            if isinstance(item[0], int):
-                report.append(f"- L{item[0]}: {item[1]}")
-            else:
-                report.append(f"- {item[0]}: {item[1]}")
-        if len(items) > 50:
-            report.append(f"- Additional items omitted: {len(items) - 50}")
-    report.append("")
+    report.append("- None")
 
-OUT_PATH.write_text("\n".join(report), encoding="utf-8")
+report.extend([
+    "",
+    "## 4. Result",
+    "",
+])
 
-print("=" * 80)
-print("Thesis quality check complete")
-print("=" * 80)
+if errors:
+    report.append(
+        "- FINAL THESIS QUALITY CHECK FAILED"
+    )
+else:
+    report.append(
+        "- FINAL THESIS QUALITY CHECK PASSED"
+    )
+
+OUT_PATH.write_text(
+    "\n".join(report) + "\n",
+    encoding="utf-8",
+)
+
+
+print("=" * 100)
+print("FINAL THESIS QUALITY CHECK")
+print("=" * 100)
+
+print(f"File: {THESIS_PATH}")
 print(f"Lines: {line_count}")
 print(f"Words: {word_count}")
 print(f"Headings: {len(headings)}")
-print(f"Duplicate heading titles: {len(duplicates)}")
-print(f"Report saved to: {OUT_PATH}")
+
+print()
+print("WARNINGS")
+print("-" * 100)
+
+if warnings:
+    for warning in warnings:
+        print(f"WARNING — {warning}")
+else:
+    print("None")
+
+print()
+print("ERRORS")
+print("-" * 100)
+
+if errors:
+    for error in errors:
+        print(f"ERROR — {error}")
+else:
+    print("None")
+
+print()
+print("=" * 100)
+
+if errors:
+    print(
+        "FINAL THESIS QUALITY CHECK FAILED"
+    )
+    print("=" * 100)
+    sys.exit(1)
+
+print(
+    "FINAL THESIS QUALITY CHECK PASSED"
+)
+print("=" * 100)
