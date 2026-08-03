@@ -750,6 +750,8 @@ N^{max}
 0.25
 \]
 
+The value 0.25 corresponds to a 25% maximum absolute notional.
+
 The principal strategies target either 5% or 10% annual volatility.
 
 The target is an ex ante forecast-volatility objective. It is not a guarantee that ex post realized volatility will equal the target.

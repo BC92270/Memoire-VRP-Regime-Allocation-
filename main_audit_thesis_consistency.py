@@ -247,8 +247,8 @@ REQUIRED_BY_DOCUMENT = {
         "232 observations",
         "170 observations",
         (
-            "trailing 21-observation "
-            "realized variance"
+            "21-observation "
+            "realized-variance measure"
         ),
         "IV_{t-1}",
         "36-month window",
