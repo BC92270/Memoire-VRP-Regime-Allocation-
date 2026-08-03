@@ -1,4 +1,22 @@
-# Chapter 2 — Data and Methodology Draft
+from __future__ import annotations
+
+from pathlib import Path
+
+
+THESIS = Path("thesis")
+
+OUTPUT_PATH = (
+    THESIS
+    / "chapter_2_data_methodology_draft.md"
+)
+
+EMPIRICAL_PACK = (
+    THESIS
+    / "empirical_update_pack.md"
+)
+
+
+METHODOLOGY_TEXT = r"""# Chapter 2 — Data and Methodology Draft
 
 ## 1. Introduction
 
@@ -663,7 +681,7 @@ VRP_{t-1}
 
 The High-VRP gate is active when the lagged entry VRP exceeds the median of its preceding rolling history.
 
-The historical median uses a 36-month window with at least 24 observations and is shifted by one additional month. At settlement date \(t\), the threshold therefore uses entry signals corresponding at the latest to \(VRP_{t-2}\). The current entry signal \(VRP_{t-1}\) and the current settlement outcome are excluded from threshold estimation.
+The historical median uses a 36-month window with at least 24 observations and excludes the current settlement outcome.
 
 ### 12.6 Lagged risk estimate
 
@@ -1102,3 +1120,126 @@ The direct-variance layer asks whether a forward-aligned short-variance payoff p
 The welfare and robustness analyses then evaluate whether apparent performance survives benchmark comparison, sampling uncertainty and alternative implementation assumptions.
 
 This architecture makes it possible to answer the central research question without conflating predictive information, portfolio allocation and derivative payoff exposure.
+"""
+
+
+def validate_empirical_pack() -> None:
+    if not EMPIRICAL_PACK.exists():
+        raise FileNotFoundError(
+            f"Missing source file: "
+            f"{EMPIRICAL_PACK}"
+        )
+
+    source = EMPIRICAL_PACK.read_text(
+        encoding="utf-8"
+    )
+
+    required = [
+        "Equity–bond allocation evidence",
+        "Underlying variance-payoff diagnostics",
+        "Welfare evidence at gamma = 5",
+        "Direct-variance robustness",
+        "Mandatory methodological terminology",
+    ]
+
+    for marker in required:
+        if marker not in source:
+            raise AssertionError(
+                f"Empirical pack missing: "
+                f"{marker}"
+            )
+
+
+def validate_methodology(
+    text: str,
+) -> None:
+    required = [
+        "195 observations",
+        "122 out-of-sample observations",
+        "232 observations",
+        "170 observations",
+        "twenty-one-observation",
+        "252}{21",
+        "K^{var}_t",
+        "IV_{t-1}",
+        "2,000 bootstrap replications",
+        "six-month blocks",
+        "full absolute notional entered",
+        (
+            "model-based direct "
+            "variance-payoff"
+        ),
+    ]
+
+    for marker in required:
+        if marker.lower() not in text.lower():
+            raise AssertionError(
+                f"Missing methodology marker: "
+                f"{marker}"
+            )
+
+    stale = [
+        "200 monthly observations",
+        "127 observations",
+        (
+            "RV_t = 252 "
+            "\\sum_{d \\in t}"
+        ),
+        (
+            "fully tradable "
+            "variance swap"
+        ),
+        "collapses in Europe",
+        "-2.8511",
+    ]
+
+    for phrase in stale:
+        if phrase.lower() in text.lower():
+            raise AssertionError(
+                f"Stale methodology phrase: "
+                f"{phrase}"
+            )
+
+    if len(text.split()) < 2_500:
+        raise AssertionError(
+            "Methodology chapter "
+            "unexpectedly short."
+        )
+
+
+def main() -> None:
+    validate_empirical_pack()
+
+    validate_methodology(
+        METHODOLOGY_TEXT
+    )
+
+    OUTPUT_PATH.write_text(
+        METHODOLOGY_TEXT.strip()
+        + "\n",
+        encoding="utf-8",
+    )
+
+    print("=" * 100)
+    print(
+        "THESIS REWRITE STAGE 2 COMPLETE"
+    )
+    print("=" * 100)
+
+    print(
+        f"Updated: {OUTPUT_PATH}"
+    )
+
+    print(
+        "Methodology words: "
+        f"{len(METHODOLOGY_TEXT.split())}"
+    )
+
+    print(
+        "Methodology lines: "
+        f"{len(METHODOLOGY_TEXT.splitlines())}"
+    )
+
+
+if __name__ == "__main__":
+    main()

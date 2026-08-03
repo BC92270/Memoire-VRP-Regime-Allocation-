@@ -1,4 +1,49 @@
-# Introduction Draft
+from __future__ import annotations
+
+from pathlib import Path
+
+
+THESIS = Path("thesis")
+
+ABSTRACT_PATH = (
+    THESIS
+    / "abstract_keywords.md"
+)
+
+INTRODUCTION_PATH = (
+    THESIS
+    / "introduction_draft.md"
+)
+
+EMPIRICAL_PACK = (
+    THESIS
+    / "empirical_update_pack.md"
+)
+
+
+ABSTRACT_TEXT = r"""# Abstract and Keywords
+
+## Abstract
+
+This thesis investigates whether the Variance Risk Premium creates more economic value when it is harvested through a model-based direct variance-payoff approximation or when it is used as an informational variable inside regime-based equity–bond allocation models. The analysis compares the United States and Europe and deliberately separates two empirical evidence layers: dynamic asset allocation and direct variance carry. This separation is necessary because the two approaches use different payoff structures, aligned samples and implementation assumptions.
+
+The allocation framework evaluates buy-and-hold equity, 60/40 and equal-weighted equity–bond benchmarks against Hidden Markov Models, Markov-switching regressions and machine-learning stress classifiers. The regime models use realized variance, implied variance and alternative transformations of the Variance Risk Premium. They are estimated through rolling out-of-sample procedures and evaluated using annualized return, volatility, Sharpe and Sortino ratios, maximum drawdown, tail-risk measures, turnover and welfare metrics.
+
+The direct-variance extension approximates the payoff from selling one-month variance exposure. The strike proxy is lagged implied variance derived from the relevant volatility index, while settlement is represented by the subsequent annualized trailing realized-variance measure. Exposure is sized using strictly lagged volatility estimates, subject to notional caps and monthly roll costs. The resulting series is a model-based capital mapping from a normalized variance payoff and must not be interpreted as an observed variance-swap return.
+
+The asset-allocation evidence is modest. In the United States, the strongest HMM specification, HMM RV + Log VRP, achieves a Sharpe ratio of 1.019 compared with 1.025 for the equal-weighted equity–bond benchmark. It improves maximum drawdown but does not establish robust benchmark dominance. In Europe, the strongest HMM or RSM specification reaches a Sharpe ratio of 0.281, compared with 0.313 for buy-and-hold equity. Machine-learning models provide incremental predictive information in some specifications, particularly the European Random Forest with VRP, but do not produce statistically significant welfare gains relative to simple benchmarks.
+
+The direct-variance evidence differs sharply across markets. In the United States, the High-VRP strategy generates an annualized return of 6.23%, volatility of 7.17% and a Sharpe ratio of 0.882. Its welfare advantage relative to 60/40 and equal-weighted allocation is not statistically significant. In Europe, the strategy that takes exposure only when the lagged VRP is positive generates an annualized return of 13.08%, volatility of 9.70% and a Sharpe ratio of 1.324. At a risk-aversion coefficient of five, its mean–variance certainty-equivalent advantage is approximately 927 basis points relative to 60/40 and 899 basis points relative to equal-weighted allocation. Bootstrap confidence intervals remain positive against both benchmarks.
+
+The main conclusion is that the economic value of the Variance Risk Premium depends critically on the payoff structure through which it is harvested. Adding VRP variables to regime-detection or machine-learning allocation models produces limited and model-dependent gains. The model-based direct variance-payoff approximation produces much stronger European evidence, although its results remain subject to substantial implementation limitations. The framework does not reconstruct exact variance-swap strikes, option surfaces, collateral accounts, bid–ask spreads, margin paths or daily mark-to-market dynamics.
+
+## Keywords
+
+Variance Risk Premium; implied variance; realized variance; variance carry; direct variance-payoff approximation; Hidden Markov Model; Markov-switching regression; machine learning; regime-based allocation; equity–bond allocation; certainty equivalent; bootstrap inference; downside risk; transaction costs; VIX; VSTOXX.
+"""
+
+
+INTRODUCTION_TEXT = r"""# Introduction Draft
 
 ## 1. General context
 
@@ -297,3 +342,129 @@ Chapter 3 presents the empirical results for the United States and Europe. It co
 Chapter 4 examines robustness and implementation. It studies transaction costs, volatility-estimation windows, notional caps, subperiod stability, crisis exclusions and risk-aversion sensitivity.
 
 Chapter 5 discusses data, modelling, statistical and implementation limitations and provides the final answer to the research question.
+"""
+
+
+def require_empirical_pack() -> None:
+    if not EMPIRICAL_PACK.exists():
+        raise FileNotFoundError(
+            f"Missing empirical source: "
+            f"{EMPIRICAL_PACK}"
+        )
+
+    text = EMPIRICAL_PACK.read_text(
+        encoding="utf-8"
+    )
+
+    required_markers = [
+        "EU direct-variance evidence",
+        (
+            "Direct Short Variance "
+            "10% Vol (VRP > 0)"
+        ),
+        (
+            "Statistically Superior "
+            "vs 60/40"
+        ),
+        (
+            "Mandatory methodological "
+            "terminology"
+        ),
+    ]
+
+    for marker in required_markers:
+        if marker not in text:
+            raise AssertionError(
+                f"Empirical pack missing: "
+                f"{marker}"
+            )
+
+
+def validate_text(
+    text: str,
+    label: str,
+) -> None:
+    stale_phrases = [
+        "collapses in Europe",
+        "collapses in the European",
+        (
+            "more useful as a "
+            "regime-state variable"
+        ),
+        (
+            "more useful as a conditional "
+            "market-state signal"
+        ),
+        (
+            "Direct synthetic VRP exposure "
+            "is not robust"
+        ),
+        "-2.8511",
+        "-0.3625",
+        "-0.9901",
+        "0.1281",
+    ]
+
+    for phrase in stale_phrases:
+        if phrase.lower() in text.lower():
+            raise AssertionError(
+                f"{label}: stale phrase: "
+                f"{phrase}"
+            )
+
+    if len(text.split()) < 250:
+        raise AssertionError(
+            f"{label}: text unexpectedly short."
+        )
+
+
+def main() -> None:
+    require_empirical_pack()
+
+    validate_text(
+        ABSTRACT_TEXT,
+        "Abstract",
+    )
+
+    validate_text(
+        INTRODUCTION_TEXT,
+        "Introduction",
+    )
+
+    ABSTRACT_PATH.write_text(
+        ABSTRACT_TEXT.strip() + "\n",
+        encoding="utf-8",
+    )
+
+    INTRODUCTION_PATH.write_text(
+        INTRODUCTION_TEXT.strip() + "\n",
+        encoding="utf-8",
+    )
+
+    print("=" * 100)
+    print(
+        "THESIS REWRITE STAGE 1 COMPLETE"
+    )
+    print("=" * 100)
+
+    print(
+        f"Updated: {ABSTRACT_PATH}"
+    )
+
+    print(
+        f"Updated: {INTRODUCTION_PATH}"
+    )
+
+    print(
+        "Abstract words: "
+        f"{len(ABSTRACT_TEXT.split())}"
+    )
+
+    print(
+        "Introduction words: "
+        f"{len(INTRODUCTION_TEXT.split())}"
+    )
+
+
+if __name__ == "__main__":
+    main()

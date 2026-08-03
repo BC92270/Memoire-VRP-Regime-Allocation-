@@ -1,4 +1,22 @@
-# Chapter 5 — Limitations, Discussion and Conclusion Draft
+from __future__ import annotations
+
+from pathlib import Path
+
+
+THESIS = Path("thesis")
+
+OUTPUT_PATH = (
+    THESIS
+    / "chapter_5_limitations_conclusion_draft.md"
+)
+
+EMPIRICAL_PACK = (
+    THESIS
+    / "empirical_update_pack.md"
+)
+
+
+CONCLUSION_TEXT = r"""# Chapter 5 — Limitations, Discussion and Conclusion Draft
 
 ## 1. Introduction
 
@@ -1072,3 +1090,128 @@ The final conclusion is therefore deliberately precise:
 This conclusion does not identify a universal trading strategy.
 
 It identifies a methodological principle: the economic value of a financial signal cannot be separated from the payoff, risk controls and implementation mechanism used to monetize it.
+"""
+
+
+def validate_source() -> None:
+    if not EMPIRICAL_PACK.exists():
+        raise FileNotFoundError(
+            EMPIRICAL_PACK
+        )
+
+    source = EMPIRICAL_PACK.read_text(
+        encoding="utf-8"
+    )
+
+    required = [
+        "Equity–bond allocation evidence",
+        "Selected direct-variance evidence",
+        "Welfare evidence at gamma = 5",
+        "Direct-variance robustness",
+        "Final empirical conclusions",
+        "Mandatory methodological terminology",
+    ]
+
+    for marker in required:
+        if marker not in source:
+            raise AssertionError(
+                f"Empirical pack missing: "
+                f"{marker}"
+            )
+
+
+def validate_text(
+    text: str,
+) -> None:
+    required = [
+        "82.42%",
+        "78.35%",
+        "13.08%",
+        "1.324",
+        "927 basis points",
+        "899 basis points",
+        "122",
+        "170",
+        "model-based direct variance-payoff",
+        "payoff structure",
+        "bootstrap-significant",
+        "neither channel establishes",
+        (
+            "does not identify a "
+            "universal trading strategy"
+        ),
+    ]
+
+    stale = [
+        "collapses in Europe",
+        "collapses in the European",
+        "-2.8511",
+        "-0.3625",
+        "-0.9901",
+        "0.1281",
+        "127 observations",
+        "200 monthly observations",
+        (
+            "more useful as a conditional "
+            "regime-state variable"
+        ),
+        (
+            "more defensible economic value "
+            "as an informational"
+        ),
+        (
+            "best understood as a conditional "
+            "market-state signal"
+        ),
+    ]
+
+    for marker in required:
+        if marker.lower() not in text.lower():
+            raise AssertionError(
+                f"Missing conclusion marker: "
+                f"{marker}"
+            )
+
+    for phrase in stale:
+        if phrase.lower() in text.lower():
+            raise AssertionError(
+                f"Stale conclusion phrase: "
+                f"{phrase}"
+            )
+
+    if len(text.split()) < 4_000:
+        raise AssertionError(
+            "Conclusion chapter "
+            "unexpectedly short."
+        )
+
+
+def main() -> None:
+    validate_source()
+    validate_text(CONCLUSION_TEXT)
+
+    OUTPUT_PATH.write_text(
+        CONCLUSION_TEXT.strip() + "\n",
+        encoding="utf-8",
+    )
+
+    print("=" * 100)
+    print(
+        "THESIS REWRITE STAGE 5 COMPLETE"
+    )
+    print("=" * 100)
+
+    print(f"Updated: {OUTPUT_PATH}")
+
+    print(
+        f"Words: {len(CONCLUSION_TEXT.split())}"
+    )
+
+    print(
+        f"Lines: "
+        f"{len(CONCLUSION_TEXT.splitlines())}"
+    )
+
+
+if __name__ == "__main__":
+    main()

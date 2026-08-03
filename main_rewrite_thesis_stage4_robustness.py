@@ -1,4 +1,22 @@
-# Chapter 4 — Robustness and Implementation Draft
+from __future__ import annotations
+
+from pathlib import Path
+
+
+THESIS = Path("thesis")
+
+OUTPUT_PATH = (
+    THESIS
+    / "chapter_4_robustness_implementation_draft.md"
+)
+
+EMPIRICAL_PACK = (
+    THESIS
+    / "empirical_update_pack.md"
+)
+
+
+ROBUSTNESS_TEXT = r"""# Chapter 4 — Robustness and Implementation Draft
 
 ## 1. Introduction
 
@@ -616,3 +634,117 @@ The appropriate conclusion is therefore:
 > The European direct-variance result is robust within the model-based framework, but it remains evidence about a stylized variance-payoff mechanism rather than proof of an exactly replicable traded return.
 
 The final chapter evaluates how this evidence should be interpreted in light of the remaining data, modelling, statistical and implementation limitations.
+"""
+
+
+def validate_source() -> None:
+    if not EMPIRICAL_PACK.exists():
+        raise FileNotFoundError(
+            EMPIRICAL_PACK
+        )
+
+    source = EMPIRICAL_PACK.read_text(
+        encoding="utf-8"
+    )
+
+    required = [
+        "Transaction-cost sensitivity",
+        "Volatility-lookback sensitivity",
+        "Notional-cap sensitivity",
+        "Subperiod stability",
+        "Risk-aversion stability",
+    ]
+
+    for marker in required:
+        if marker not in source:
+            raise AssertionError(
+                f"Empirical pack missing: "
+                f"{marker}"
+            )
+
+
+def validate_text(
+    text: str,
+) -> None:
+    required = [
+        "Partial rebalancing",
+        "25.35%",
+        "9.10%",
+        "50 basis points",
+        "12 to 60 months",
+        "5% notional cap",
+        "Exclude all major crises",
+        "141",
+        "1.877",
+        "risk-aversion coefficients",
+        "monthly contract renewal",
+        (
+            "robust within the "
+            "model-based framework"
+        ),
+    ]
+
+    stale = [
+        "collapses in Europe",
+        "collapses in the European",
+        "-2.8511",
+        "-0.3625",
+        "-0.9901",
+        "0.1281",
+        "127 observations",
+        (
+            "more useful as a "
+            "regime-state variable"
+        ),
+    ]
+
+    for marker in required:
+        if marker.lower() not in text.lower():
+            raise AssertionError(
+                f"Missing robustness marker: "
+                f"{marker}"
+            )
+
+    for phrase in stale:
+        if phrase.lower() in text.lower():
+            raise AssertionError(
+                f"Stale robustness phrase: "
+                f"{phrase}"
+            )
+
+    if len(text.split()) < 3_000:
+        raise AssertionError(
+            "Robustness chapter "
+            "unexpectedly short."
+        )
+
+
+def main() -> None:
+    validate_source()
+    validate_text(ROBUSTNESS_TEXT)
+
+    OUTPUT_PATH.write_text(
+        ROBUSTNESS_TEXT.strip() + "\n",
+        encoding="utf-8",
+    )
+
+    print("=" * 100)
+    print(
+        "THESIS REWRITE STAGE 4 COMPLETE"
+    )
+    print("=" * 100)
+
+    print(f"Updated: {OUTPUT_PATH}")
+
+    print(
+        f"Words: {len(ROBUSTNESS_TEXT.split())}"
+    )
+
+    print(
+        f"Lines: "
+        f"{len(ROBUSTNESS_TEXT.splitlines())}"
+    )
+
+
+if __name__ == "__main__":
+    main()

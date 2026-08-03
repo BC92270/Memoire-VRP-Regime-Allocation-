@@ -1,4 +1,22 @@
-# Chapter 3 — Empirical Results Draft
+from __future__ import annotations
+
+from pathlib import Path
+
+
+THESIS = Path("thesis")
+
+OUTPUT_PATH = (
+    THESIS
+    / "chapter_3_empirical_results_draft.md"
+)
+
+EMPIRICAL_PACK = (
+    THESIS
+    / "empirical_update_pack.md"
+)
+
+
+RESULTS_TEXT = r"""# Chapter 3 — Empirical Results Draft
 
 ## 1. Introduction
 
@@ -463,3 +481,110 @@ Fourth, the selected United States direct-variance specification improves headli
 Fifth, the selected European direct-variance specification produces strong and bootstrap-significant welfare gains, although it remains a model-based approximation subject to important implementation limitations.
 
 These findings motivate the robustness and implementation analysis developed in the next chapter.
+"""
+
+
+def validate_source() -> None:
+    if not EMPIRICAL_PACK.exists():
+        raise FileNotFoundError(
+            EMPIRICAL_PACK
+        )
+
+    source = EMPIRICAL_PACK.read_text(
+        encoding="utf-8"
+    )
+
+    required = [
+        "13.08%",
+        "1.324",
+        "926.6",
+        "Statistically Superior",
+        "Underlying variance-payoff diagnostics",
+    ]
+
+    for marker in required:
+        if marker.lower() not in source.lower():
+            raise AssertionError(
+                f"Empirical pack missing: {marker}"
+            )
+
+
+def validate_results(
+    text: str,
+) -> None:
+    required = [
+        "184",
+        "122",
+        "232",
+        "170",
+        "82.42%",
+        "78.35%",
+        "6.23%",
+        "13.08%",
+        "1.324",
+        "926.6",
+        "898.8",
+        (
+            "depends critically on the "
+            "payoff structure"
+        ),
+    ]
+
+    stale = [
+        "collapses in Europe",
+        "collapses in the European",
+        "-2.8511",
+        "-0.3625",
+        "-0.9901",
+        "0.1281",
+        (
+            "more useful as a "
+            "regime-state variable"
+        ),
+    ]
+
+    for marker in required:
+        if marker.lower() not in text.lower():
+            raise AssertionError(
+                f"Missing result marker: {marker}"
+            )
+
+    for phrase in stale:
+        if phrase.lower() in text.lower():
+            raise AssertionError(
+                f"Stale result phrase: {phrase}"
+            )
+
+    if len(text.split()) < 2_500:
+        raise AssertionError(
+            "Results chapter unexpectedly short."
+        )
+
+
+def main() -> None:
+    validate_source()
+    validate_results(RESULTS_TEXT)
+
+    OUTPUT_PATH.write_text(
+        RESULTS_TEXT.strip() + "\n",
+        encoding="utf-8",
+    )
+
+    print("=" * 100)
+    print(
+        "THESIS REWRITE STAGE 3 COMPLETE"
+    )
+    print("=" * 100)
+
+    print(f"Updated: {OUTPUT_PATH}")
+    print(
+        f"Words: {len(RESULTS_TEXT.split())}"
+    )
+    print(
+        f"Lines: "
+        f"{len(RESULTS_TEXT.splitlines())}"
+    )
+
+
+if __name__ == "__main__":
+    main()
