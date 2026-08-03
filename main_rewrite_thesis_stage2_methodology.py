@@ -681,7 +681,7 @@ VRP_{t-1}
 
 The High-VRP gate is active when the lagged entry VRP exceeds the median of its preceding rolling history.
 
-The historical median uses a 36-month window with at least 24 observations and excludes the current settlement outcome.
+The historical median uses a 36-month window with at least 24 observations and is shifted by one additional month. At settlement date \(t\), the threshold therefore uses entry signals corresponding at the latest to \(VRP_{t-2}\). The current entry signal \(VRP_{t-1}\) and the current settlement outcome are excluded from threshold estimation.
 
 ### 12.6 Lagged risk estimate
 
@@ -1164,6 +1164,8 @@ def validate_methodology(
         "252}{21",
         "K^{var}_t",
         "IV_{t-1}",
+        "VRP_{t-2}",
+        "current entry signal",
         "2,000 bootstrap replications",
         "six-month blocks",
         "full absolute notional entered",

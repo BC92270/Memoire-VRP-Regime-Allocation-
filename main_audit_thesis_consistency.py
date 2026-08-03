@@ -251,6 +251,8 @@ REQUIRED_BY_DOCUMENT = {
             "realized-variance measure"
         ),
         "IV_{t-1}",
+        "VRP_{t-2}",
+        "current entry signal",
         "36-month window",
         "minimum of 24 observations",
         "25%",
