@@ -3,10 +3,10 @@
 ## 1. Audited file
 
 - File: `thesis/final_thesis_package.md`
-- Lines: 3917
-- Words: 20368
-- Characters: 145803
-- Headings: 251
+- Lines: 3935
+- Words: 20839
+- Characters: 149357
+- Headings: 252
 - Draft mentions: 0
 - Bad glued chapter headings: 0
 

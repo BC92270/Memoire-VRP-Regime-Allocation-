@@ -3716,9 +3716,25 @@ This demonstrates the importance of data auditing in quantitative research.
 
 ---
 
-## 13. Implications for investors and researchers
+## 13. Research-question answer matrix
 
-### 13.1 Implications for allocation investors
+The thesis is ultimately judged by whether the empirical design answers the questions stated in the proposal. The following matrix links each question to the corresponding evidence and conclusion.
+
+| Research question | Main evidence | Answer | Interpretation for the thesis |
+|---|---|---|---|
+| Do regime-based methods improve equity-index allocation when VRP is available? | HMM, RSM and ML strategies are feasible and sometimes improve drawdown or classification metrics, but they do not establish robust Sharpe or welfare dominance over simple benchmarks. | Partially, but not robustly. | VRP is informative in some specifications, yet informational content is not sufficient to guarantee economic value after turnover and benchmark discipline. |
+| Do traditional benchmarks remain difficult to beat? | 60/40 and 1/N remain competitive, especially in risk-adjusted and welfare comparisons. | Yes. | This is consistent with benchmark-discipline arguments in the portfolio-choice literature and prevents overclaiming model value. |
+| Is VRP more valuable when traded directly or used as a state variable? | The direct-variance approximation is much stronger in Europe, while allocation gains are limited; in the United States, neither channel establishes robust welfare dominance. | The answer is market- and payoff-dependent. | The thesis should not claim a universal best use of VRP; it should claim that the payoff mechanism dominates the signal-only interpretation in the tested European sample. |
+| Does the project identify an implementable variance-swap strategy? | The direct-variance layer uses lagged implied variance, realized-variance settlement proxies, notional caps and roll costs, but not actual option-surface replication or dealer quotes. | No. | The result is an economically informative approximation, not a verified executable derivative strategy. |
+| What is the safest final conclusion? | Allocation evidence is modest; European direct-variance evidence is strong but approximate; US direct-variance welfare dominance is not established. | VRP has conditional economic value. | The strongest contribution is the separation between informational and payoff channels, not a claim that one model always beats benchmarks. |
+
+This matrix also clarifies why the thesis deliberately avoids a simple positive conclusion. A high-grade interpretation is not that every sophisticated method improves performance, but that the empirical evidence identifies where the economic value of VRP survives benchmark, welfare and implementation discipline.
+
+---
+
+## 14. Implications for investors and researchers
+
+### 14.1 Implications for allocation investors
 
 Investors should not assume that adding a sophisticated regime model will automatically improve a balanced portfolio.
 
@@ -3735,7 +3751,7 @@ Partial rebalancing is more effective than simple no-trade bands in reducing tur
 
 ---
 
-### 13.2 Implications for volatility investors
+### 14.2 Implications for volatility investors
 
 Positive average variance carry should never be evaluated without:
 
@@ -3752,7 +3768,7 @@ An institutional implementation would require a complete derivative-pricing and 
 
 ---
 
-### 13.3 Implications for empirical research
+### 14.3 Implications for empirical research
 
 The results show that data quality can reverse an empirical conclusion.
 
@@ -3771,17 +3787,19 @@ Quantitative research should therefore include explicit tests for:
 
 ---
 
-## 14. Future research
+## 15. Future research
 
-Several extensions would materially strengthen the analysis.
+Several extensions would materially strengthen the analysis. The most useful extensions are not additional black-box models, but improvements that follow directly from the literature reviewed in the thesis. Carr and Wu (2009) motivate exact variance-swap replication from option portfolios; Bollerslev, Tauchen and Zhou (2009) motivate treating VRP as a predictive variable whose statistical content must be converted into economic value; Ang and Bekaert (2002) and Guidolin and Timmermann (2007) motivate richer regime structures and out-of-sample asset-allocation discipline; DeMiguel, Garlappi and Uppal (2009) motivate strict comparison with transparent benchmark portfolios.
 
-### 14.1 Exact variance-swap replication
+This literature implies that the most valuable next steps are: first, improve the measurement of the variance payoff; second, validate the result outside the selected sample; third, test whether richer regimes improve allocation after turnover; and fourth, apply stronger multiple-model inference before claiming superiority.
+
+### 15.1 Exact variance-swap replication
 
 Future work should construct fair variance strikes from option chains using the appropriate replication formula.
 
 This would replace the volatility-index-square approximation with contract-matched forward variance.
 
-### 14.2 Observed derivative data
+### 15.2 Observed derivative data
 
 Institutional variance-swap quotes or proprietary dealer data would allow:
 
@@ -3791,7 +3809,7 @@ Institutional variance-swap quotes or proprietary dealer data would allow:
 - collateral assumptions;
 - executable notional conventions.
 
-### 14.3 Option-based replication
+### 15.3 Option-based replication
 
 A complementary approach could backtest delta-hedged option portfolios designed to approximate variance exposure.
 
@@ -3803,7 +3821,7 @@ This would permit direct measurement of:
 - tail truncation;
 - volatility-surface dynamics.
 
-### 14.4 Higher-frequency realized variance
+### 15.4 Higher-frequency realized variance
 
 Intraday data could support:
 
@@ -3813,7 +3831,7 @@ Intraday data could support:
 - overnight-return treatment;
 - more accurate settlement matching.
 
-### 14.5 External validation
+### 15.5 External validation
 
 The models should be tested on:
 
@@ -3823,7 +3841,7 @@ The models should be tested on:
 - alternative European indices;
 - later holdout periods not used for any model selection.
 
-### 14.6 Stronger statistical corrections
+### 15.6 Stronger statistical corrections
 
 Future work could add:
 
@@ -3834,7 +3852,7 @@ Future work could add:
 - bootstrap Sharpe-difference tests;
 - nested forecast-comparison procedures.
 
-### 14.7 Dynamic transaction and margin costs
+### 15.7 Dynamic transaction and margin costs
 
 A more realistic implementation model could link costs and margin requirements to:
 
@@ -3844,7 +3862,7 @@ A more realistic implementation model could link costs and margin requirements t
 - dealer balance-sheet conditions;
 - liquidity indicators.
 
-### 14.8 Alternative allocation mappings
+### 15.8 Alternative allocation mappings
 
 Future work could test nonlinear mappings from stress probability to portfolio weights, including:
 
@@ -3856,7 +3874,7 @@ Future work could test nonlinear mappings from stress probability to portfolio w
 
 ---
 
-## 15. Final conclusion
+## 16. Final conclusion
 
 This thesis studied whether the Variance Risk Premium creates greater economic value as an informational input for dynamic equity–bond allocation or through a model-based direct variance-payoff approximation.
 
