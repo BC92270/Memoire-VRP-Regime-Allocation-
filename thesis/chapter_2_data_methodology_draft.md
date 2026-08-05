@@ -1055,17 +1055,19 @@ Welfare stability is examined for:
 
 The following rules are applied throughout the thesis.
 
-First, allocation strategies are compared with allocation benchmarks on their aligned 184-observation US and 122-observation European samples.
+First, because the thesis is dated March 2026, newly generated empirical datasets are cut off at 2026-02-28. This prevents the final empirical run from including observations that would not have been available at the thesis date. If archived generated output tables display later dates, they should be treated as stale artifacts and regenerated with the fixed cutoff before final submission.
 
-Second, direct-variance strategies are compared with benchmarks realigned to their 232-observation US and 170-observation European samples.
+Second, allocation strategies are compared with allocation benchmarks on their aligned 184-observation US and 122-observation European samples.
 
-Third, performance values from different evidence layers are not treated as if they came from the same sample.
+Third, direct-variance strategies are compared with benchmarks realigned to their 232-observation US and 170-observation European samples.
 
-Fourth, the Pure VRP Proxy remains exploratory.
+Fourth, performance values from different evidence layers are not treated as if they came from the same sample.
 
-Fifth, the direct-variance strategy is described as a model-based approximation rather than as a traded variance-swap return.
+Fifth, the Pure VRP Proxy remains exploratory.
 
-Sixth, strong in-sample or historical results are not interpreted as proof of future profitability.
+Sixth, the direct-variance strategy is described as a model-based approximation rather than as a traded variance-swap return.
+
+Seventh, strong in-sample or historical results are not interpreted as proof of future profitability.
 
 ---
 

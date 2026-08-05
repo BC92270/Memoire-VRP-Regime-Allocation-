@@ -12,6 +12,10 @@ The second layer evaluates a model-based direct variance-payoff approximation de
 
 This distinction is essential. Allocation strategies and direct-variance strategies use different payoff constructions and different aligned samples. They are therefore interpreted jointly but are not ranked mechanically as if they represented identical investment opportunities.
 
+Because the thesis is dated March 2026, all newly generated empirical datasets should be cut off before March 2026. The project configuration therefore fixes the data end date at 2026-02-28. Previously generated output tables may still show later dates if they were produced before the cutoff was imposed; those tables should be regenerated before final submission.
+
+Because the HMM, RSM, machine-learning and direct-variance layers impose different rolling-window, one-step-ahead and payoff-alignment requirements, some summary files may contain different observation counts. Comparisons are therefore made within each evidence layer on its own aligned sample, rather than by mechanically pooling all reported rows across files.
+
 The allocation comparisons contain:
 
 | Market | Out-of-sample observations |
