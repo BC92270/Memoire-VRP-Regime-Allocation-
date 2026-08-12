@@ -1,0 +1,140 @@
+\documentclass[11pt,a4paper]{article}
+
+% ============================================================
+% PAGE LAYOUT
+% ============================================================
+
+\usepackage[
+    a4paper,
+    margin=2.4cm
+]{geometry}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+\usepackage{setspace}
+\setstretch{1.08}
+
+\setlength{\parindent}{1.2em}
+\setlength{\parskip}{0pt}
+
+% ============================================================
+% MATHEMATICS
+% ============================================================
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+% ============================================================
+% TABLES
+% ============================================================
+
+\usepackage{booktabs}
+\usepackage{threeparttable}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{siunitx}
+
+% ============================================================
+% FIGURES
+% ============================================================
+
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% ============================================================
+% REFERENCES
+% ============================================================
+
+\usepackage{csquotes}
+
+\usepackage[
+    backend=biber,
+    style=authoryear,
+    maxcitenames=2,
+    maxbibnames=99,
+    doi=true,
+    url=false,
+    isbn=false
+]{biblatex}
+
+\addbibresource{references.bib}
+
+% ============================================================
+% LINKS
+% ============================================================
+
+\usepackage[hidelinks]{hyperref}
+
+% ============================================================
+% TITLE
+% ============================================================
+
+\title{
+    \textbf{
+        Economic Value of the Variance Risk Premium
+    }
+    \\
+    \large
+    Regime-Based Allocation versus
+    Model-Based Direct Variance Carry
+}
+
+\author{Achille Lenarduzzi}
+
+\date{}
+
+% ============================================================
+% DOCUMENT
+% ============================================================
+
+\begin{document}
+
+\maketitle
+
+\input{sections/00_abstract}
+
+\input{sections/01_introduction}
+
+\input{sections/02_literature_review}
+
+\input{sections/03_data_methodology}
+
+\input{sections/04_empirical_results}
+
+\input{sections/05_robustness}
+
+\input{sections/06_conclusion}
+
+% ============================================================
+% BIBLIOGRAPHY
+% Counts toward the university's 35-page limit
+% ============================================================
+
+\printbibliography
+
+% ============================================================
+% APPENDICES
+% Excluded from the university's 35-page limit
+% ============================================================
+
+\clearpage
+\appendix
+
+\input{appendix/A_additional_model_results}
+
+\input{appendix/B_robustness_tables}
+
+\input{appendix/C_data_construction}
+
+\input{appendix/D_reproducibility}
+
+\end{document}

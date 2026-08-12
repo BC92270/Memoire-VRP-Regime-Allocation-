@@ -16,3 +16,18 @@ outputs/logs/
 *.csv
 *.xlsx
 *.parquet
+# LaTeX build artifacts
+thesis/latex/*.aux
+thesis/latex/*.bcf
+thesis/latex/*.blg
+thesis/latex/*.fdb_latexmk
+thesis/latex/*.fls
+thesis/latex/*.log
+thesis/latex/*.out
+thesis/latex/*.run.xml
+thesis/latex/*.toc
+thesis/latex/*.bbl
+thesis/latex/*.synctex.gz
+
+# Generated final thesis PDF
+thesis/latex/main.pdf
