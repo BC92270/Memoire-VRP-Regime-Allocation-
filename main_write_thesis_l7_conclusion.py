@@ -1,3 +1,16 @@
+from __future__ import annotations
+
+from pathlib import Path
+import re
+
+
+TARGET = Path(
+    "thesis/latex/sections/"
+    "06_conclusion.tex"
+)
+
+
+TEXT = r"""
 \section{Discussion and Conclusion}
 \label{sec:conclusion}
 
@@ -146,3 +159,239 @@ The economic value of the Variance Risk Premium depends critically on the payoff
 \end{quote}
 
 This conclusion does not identify a universal trading strategy. It identifies a broader empirical principle: the economic value of a financial signal cannot be separated from the payoff, risk controls, benchmarks, and implementation mechanism used to monetize it.
+""".strip() + "\n"
+
+
+def validate(text: str) -> None:
+    errors: list[str] = []
+
+    required = [
+        (
+            "Does the Variance Risk Premium "
+            "create more economic value as an "
+            "informational state variable"
+        ),
+        "184 United States",
+        "122 European",
+        "232 United States",
+        "170 European",
+        "1.019",
+        "1.324",
+        "927 basis points",
+        "899 basis points",
+        "2,000 paired moving-block",
+        "six-month blocks",
+        "expanding estimation history",
+        "fixed 72-month rolling training window",
+        (
+            "not an observed return on "
+            "invested capital"
+        ),
+        (
+            "does not identify a universal "
+            "trading strategy"
+        ),
+        (
+            "The economic value of the "
+            "Variance Risk Premium depends "
+            "critically on the payoff structure"
+        ),
+    ]
+
+    forbidden = [
+        "collapses in Europe",
+        "collapses in the European",
+        "-2.8511",
+        "-0.3625",
+        "-0.9901",
+        "0.1281",
+        "127 observations",
+        "200 monthly observations",
+        (
+            "allocation models use a "
+            "72-month rolling estimation window"
+        ),
+        "true variance swap",
+        "directly traded variance",
+        "verified executable variance strategy",
+        "available traded return",
+        "filecite",
+        "turn136file",
+        "Final discussion and conclusion pending",
+    ]
+
+    for marker in required:
+        if marker.lower() not in text.lower():
+            errors.append(
+                f"missing required marker: {marker}"
+            )
+
+    for marker in forbidden:
+        if marker.lower() in text.lower():
+            errors.append(
+                f"forbidden/stale marker: {marker}"
+            )
+
+    for environment in (
+        "quote",
+    ):
+        begin = text.count(
+            rf"\begin{{{environment}}}"
+        )
+        end = text.count(
+            rf"\end{{{environment}}}"
+        )
+
+        if begin != end:
+            errors.append(
+                f"{environment}: "
+                f"{begin} begin / {end} end"
+            )
+
+    if text.count("{") != text.count("}"):
+        errors.append(
+            "unbalanced curly braces: "
+            f"{text.count('{')} / "
+            f"{text.count('}')}"
+        )
+
+    if text.count("$") % 2:
+        errors.append(
+            "odd number of inline $ delimiters"
+        )
+
+    labels = re.findall(
+        r"\\label\{([^}]+)\}",
+        text,
+    )
+
+    if len(labels) != len(set(labels)):
+        errors.append(
+            "duplicate LaTeX labels"
+        )
+
+    for number, line in enumerate(
+        text.splitlines(),
+        start=1,
+    ):
+        stripped = line.strip()
+
+        if re.match(
+            r"^#{1,6}\s+",
+            stripped,
+        ):
+            errors.append(
+                f"Markdown heading at line {number}"
+            )
+
+        if stripped.startswith("```"):
+            errors.append(
+                f"Markdown fence at line {number}"
+            )
+
+        if (
+            len(stripped) >= 2
+            and set(stripped) == {"="}
+        ):
+            errors.append(
+                f"copy corruption '=' at line {number}"
+            )
+
+        if (
+            len(stripped) >= 2
+            and set(stripped) == {"-"}
+        ):
+            errors.append(
+                f"copy corruption '-' at line {number}"
+            )
+
+        if "S&P" in line:
+            errors.append(
+                f"unescaped S&P at line {number}"
+            )
+
+    word_count = len(text.split())
+
+    if word_count < 2_400:
+        errors.append(
+            "conclusion unexpectedly short: "
+            f"{word_count} words"
+        )
+
+    if word_count > 3_600:
+        errors.append(
+            "conclusion unexpectedly long: "
+            f"{word_count} words"
+        )
+
+    # Important conceptual consistency check.
+    if (
+        "HMM and RSM estimation begins after "
+        "a 72-month burn-in and then uses an "
+        "expanding estimation history"
+        not in text
+    ):
+        errors.append(
+            "HMM/RSM timing statement missing"
+        )
+
+    if (
+        "machine-learning layer instead uses "
+        "a fixed 72-month rolling training window"
+        not in text
+    ):
+        errors.append(
+            "ML rolling-window distinction missing"
+        )
+
+    if errors:
+        print("=" * 92)
+        print(
+            "L7 DISCUSSION AND CONCLUSION "
+            "VALIDATION FAILED"
+        )
+        print("=" * 92)
+
+        for error in errors:
+            print(
+                "ERROR —",
+                error,
+            )
+
+        raise SystemExit(1)
+
+
+validate(TEXT)
+
+TARGET.parent.mkdir(
+    parents=True,
+    exist_ok=True,
+)
+
+TARGET.write_text(
+    TEXT,
+    encoding="utf-8",
+)
+
+print("=" * 92)
+print("L7 DISCUSSION AND CONCLUSION WRITER")
+print("=" * 92)
+print(
+    f"PASS — wrote {TARGET}"
+)
+print(
+    f"Words: {len(TEXT.split())}"
+)
+print(
+    f"Lines: {len(TEXT.splitlines())}"
+)
+print(
+    "Subsections:",
+    TEXT.count(
+        r"\subsection{"
+    ),
+)
+print(
+    "PASS — conceptual, numerical "
+    "and LaTeX validation completed"
+)
