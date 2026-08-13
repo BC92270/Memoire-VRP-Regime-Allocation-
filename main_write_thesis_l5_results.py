@@ -1,3 +1,16 @@
+from __future__ import annotations
+
+from pathlib import Path
+import re
+
+
+TARGET = Path(
+    "thesis/latex/sections/"
+    "04_empirical_results.tex"
+)
+
+
+TEXT = r"""
 \section{Empirical Results}
 \label{sec:results}
 
@@ -323,3 +336,190 @@ Third, the payoff channel produces the strongest cross-market asymmetry. The Uni
 The results therefore do not support the statement that VRP is universally more useful as a state variable, nor do they support a claim that VRP fails in Europe. Instead, they imply that the economic value associated with variance information depends critically on the payoff structure through which it is harvested.
 
 The next section tests whether these conclusions survive changes in implementation assumptions, risk-estimation windows, exposure limits, subperiods, crisis exclusions, rebalancing rules, and investor risk aversion.
+""".strip() + "\n"
+
+
+def validate(text: str) -> None:
+    errors: list[str] = []
+
+    required = [
+        "184 out-of-sample observations",
+        "122 in Europe",
+        "232 observations",
+        "170 in Europe",
+        "1.019",
+        "0.281",
+        "0.274",
+        "82.42",
+        "78.35",
+        "0.882",
+        "1.324",
+        "926.6",
+        "898.8",
+        "model-based direct variance-payoff approximation",
+        "does not establish statistically robust welfare dominance",
+    ]
+
+    forbidden = [
+        "collapses in Europe",
+        "collapses in the European",
+        "-2.8511",
+        "-0.3625",
+        "-0.9901",
+        "0.1281",
+        "127 observations",
+        "200 monthly observations",
+        "true variance swap backtest",
+        "directly traded variance",
+        "return on invested capital",
+        "filecite",
+        "turn119file",
+        "Final empirical results pending",
+    ]
+
+    for marker in required:
+        if marker.lower() not in text.lower():
+            errors.append(
+                f"missing required marker: {marker}"
+            )
+
+    for marker in forbidden:
+        if marker.lower() in text.lower():
+            errors.append(
+                f"forbidden/stale marker: {marker}"
+            )
+
+    environments = [
+        "table",
+        "tabularx",
+    ]
+
+    for environment in environments:
+        begin = text.count(
+            rf"\begin{{{environment}}}"
+        )
+        end = text.count(
+            rf"\end{{{environment}}}"
+        )
+
+        if begin != end:
+            errors.append(
+                f"{environment}: "
+                f"{begin} begin / {end} end"
+            )
+
+    if text.count("{") != text.count("}"):
+        errors.append(
+            "global curly-brace count is unbalanced: "
+            f"{text.count('{')} vs "
+            f"{text.count('}')}"
+        )
+
+    if text.count("$") % 2:
+        errors.append(
+            "odd number of inline $ delimiters"
+        )
+
+    labels = re.findall(
+        r"\\label\{([^}]+)\}",
+        text,
+    )
+
+    if len(labels) != len(set(labels)):
+        errors.append(
+            "duplicate LaTeX labels detected"
+        )
+
+    for number, line in enumerate(
+        text.splitlines(),
+        start=1,
+    ):
+        stripped = line.strip()
+
+        if re.match(
+            r"^#{1,6}\s+",
+            stripped,
+        ):
+            errors.append(
+                f"Markdown heading at line {number}"
+            )
+
+        if stripped.startswith("```"):
+            errors.append(
+                f"Markdown fence at line {number}"
+            )
+
+        if (
+            len(stripped) >= 2
+            and set(stripped) == {"="}
+        ):
+            errors.append(
+                f"copy corruption '=' at line {number}"
+            )
+
+        if (
+            len(stripped) >= 2
+            and set(stripped) == {"-"}
+        ):
+            errors.append(
+                f"copy corruption '-' at line {number}"
+            )
+
+        if "S&P" in line:
+            errors.append(
+                f"unescaped S&P at line {number}"
+            )
+
+    if len(text.split()) < 2_000:
+        errors.append(
+            "results section unexpectedly short"
+        )
+
+    if errors:
+        print("=" * 88)
+        print("L5 EMPIRICAL RESULTS VALIDATION FAILED")
+        print("=" * 88)
+
+        for error in errors:
+            print(
+                "ERROR —",
+                error,
+            )
+
+        raise SystemExit(1)
+
+
+validate(TEXT)
+
+TARGET.parent.mkdir(
+    parents=True,
+    exist_ok=True,
+)
+
+TARGET.write_text(
+    TEXT,
+    encoding="utf-8",
+)
+
+print("=" * 88)
+print("L5 EMPIRICAL RESULTS WRITER")
+print("=" * 88)
+print(
+    f"PASS — wrote {TARGET}"
+)
+print(
+    f"Words: {len(TEXT.split())}"
+)
+print(
+    f"Lines: {len(TEXT.splitlines())}"
+)
+print(
+    "Tables:",
+    TEXT.count(
+        r"\begin{table}"
+    ),
+)
+print(
+    "PASS — internal numerical and "
+    "LaTeX validation completed"
+)
