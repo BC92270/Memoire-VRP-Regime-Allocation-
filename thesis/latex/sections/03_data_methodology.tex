@@ -129,7 +129,7 @@ The RSM stress probability is mapped into the same 80%--20% equity rule as the H
 
 \subsection{Machine-learning stress classification}
 
-The machine-learning layer provides a nonlinear test of the incremental information contained in VRP features. Three classifier families are considered: penalized logistic regression, Random Forest, and histogram-based Gradient Boosting. Their role is predictive rather than structural; they do not replace the economic interpretation of the variance premium. This use of flexible prediction methods is consistent with the broader asset-pricing evidence discussed by \textcite{GuKellyXiu2020}.
+The machine-learning layer provides a nonlinear test of the incremental information contained in VRP features. Three classifier families are considered: penalized logistic regression, Random Forest, and histogram-based Gradient Boosting. The Random Forest specification follows the ensemble-tree framework introduced by \textcite{Breiman2001}. Their role is predictive rather than structural; they do not replace the economic interpretation of the variance premium. This use of flexible prediction methods is consistent with the broader asset-pricing evidence discussed by \textcite{GuKellyXiu2020}.
 
 Two feature sets are compared. The base set contains equity return, bond return, log realized variance, and log implied variance. The VRP-enhanced set additionally contains raw VRP and LogVRP. Comparing otherwise identical models with and without these two variables isolates their incremental predictive contribution.
 
@@ -287,7 +287,7 @@ CEQ_b.
 
 Fee-equivalent differences are reported in annual basis points by multiplying $\Delta CEQ$ by 10,000.
 
-Sampling uncertainty is assessed using a paired moving-block bootstrap. Strategy and benchmark returns are resampled jointly so that cross-strategy dependence is preserved. The baseline procedure uses 2,000 bootstrap replications and six-month blocks. Welfare differences are evaluated against both the 60/40 and equal-weighted benchmarks. A strategy is classified as statistically superior only when the lower bound of the corresponding bootstrap confidence interval is above zero.
+Sampling uncertainty is assessed using a paired moving-block bootstrap, following the block-resampling logic developed for dependent stationary observations by \textcite{Kunsch1989}. Strategy and benchmark returns are resampled jointly so that cross-strategy dependence is preserved. The baseline procedure uses 2,000 bootstrap replications and six-month blocks. Welfare differences are evaluated against both the 60/40 and equal-weighted benchmarks. A strategy is classified as statistically superior only when the lower bound of the corresponding bootstrap confidence interval is above zero.
 
 \subsection{Robustness design and interpretation}
 
@@ -302,7 +302,7 @@ Most importantly, the direct-variance layer is described throughout as a model-b
 \subsection{Code, Data, and Reproducibility}
 \label{subsec:reproducibility}
 
-All empirical analyses in this thesis are implemented in Python. The project repository separates data ingestion and feature construction, econometric and machine-learning models, portfolio construction, welfare analysis, robustness testing, reporting, and LaTeX production. The empirical tables and figures reported in the thesis are generated from the same codebase used to estimate the models and construct the portfolios rather than being reconstructed manually for presentation.
+All empirical analyses in this thesis are implemented in Python. The project repository separates data ingestion and feature construction, econometric and machine-learning models, portfolio construction, welfare analysis, robustness testing, reporting, and LaTeX production. The empirical tables and figures reported in the thesis are generated from the same codebase used to estimate the models and construct the portfolios rather than being reconstructed manually for presentation. This emphasis is consistent with the reproducibility concerns documented in empirical finance by \textcite{PerignonEtAl2024}.
 
 The data pipeline combines programmatically downloaded market series with locally supplied files when an external history cannot be reproduced reliably through the same interface. Date parsing, duplicate removal, numerical cleaning, sample filtering, temporal alignment, and calendar-gap treatment are implemented explicitly in the source code. Where redistribution of a raw dataset is restricted or impractical, replication requires access to the original source or an equivalent local input file.
 
