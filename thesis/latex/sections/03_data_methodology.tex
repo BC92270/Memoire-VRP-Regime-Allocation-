@@ -58,7 +58,8 @@ Two principal transformations of the Variance Risk Premium are used. The raw pro
 VRP_t
 =
 IV_t
-RV_t,
+-
+RV_t.
 \end{equation}
 
 while the relative transformation is
@@ -102,8 +103,9 @@ Let $p_t^{stress}$ denote the filtered probability of the identified stress stat
 w_t^{eq}
 =
 0.80
+-
 0.60
-p_t^{stress},
+p_t^{stress}.
 \end{equation}
 
 and the bond allocation is
@@ -112,6 +114,7 @@ and the bond allocation is
 w_t^{bond}
 =
 1
+-
 w_t^{eq}.
 \end{equation}
 
@@ -140,9 +143,9 @@ Stress_{s+1}
 =
 \mathbf{1}
 \left[
-R^{eq}*{s+1}
+R^{eq}_{s+1}
 \leq
-Q*{0.20}
+Q_{0.20}
 \ \text{or}
 RV_{s+1}
 \geq
@@ -218,9 +221,9 @@ The unconstrained target notional is
 N_t^{raw}
 =
 \frac{
-\sigma^{target}*{m}
+\sigma^{target}_{m}
 }{
-\widehat{\sigma}*{t-1}
+\widehat{\sigma}_{t-1}
 }.
 \end{equation}
 
