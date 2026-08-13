@@ -1,2 +1,50 @@
 \section{Additional Model Results}
 \label{app:model-results}
+
+This appendix reports supplementary results that support the model-family comparisons in the main text. The purpose is not to rank every estimated specification ex post, but to document the final model-family leaders and the machine-learning diagnostics most directly related to the incremental-information question. All portfolio statistics in Table~\ref{tab:appendix_model_leaders} use the final aligned allocation samples: 184 out-of-sample observations in the United States and 122 in Europe.
+
+\begin{table}[H]
+\centering
+\caption{Final allocation model-family leaders}
+\label{tab:appendix_model_leaders}
+\small
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lllrrrrrr}
+\toprule
+Market & Family & Strategy & Return & Vol. & Sharpe & MDD & Turnover & Obs. \\
+\midrule
+US & HMM & HMM RV + Log VRP & 8.36\% & 8.24\% & 1.019 & -16.67\% & 25.35\% & 184 \\
+US & RSM & RSM RV + Raw VRP & 9.61\% & 10.25\% & 0.949 & -15.43\% & 36.69\% & 184 \\
+US & Machine Learning & ML Logistic Base & 7.58\% & 7.60\% & 1.002 & -18.54\% & 17.39\% & 184 \\
+EU & HMM & HMM RV & 1.80\% & 10.94\% & 0.218 & -19.39\% & 17.76\% & 122 \\
+EU & RSM & RSM RV + Raw VRP & 2.55\% & 11.24\% & 0.281 & -20.47\% & 34.00\% & 122 \\
+EU & Machine Learning & ML Random Forest + VRP & 2.26\% & 9.99\% & 0.274 & -19.17\% & 15.38\% & 122 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+The table reinforces the main allocation conclusion. In the United States, the selected HMM is close to the simple balanced benchmarks in Sharpe ratio and improves maximum drawdown, but at materially greater turnover. The selected RSM improves drawdown further but has a lower Sharpe ratio and even higher turnover. The strongest United States machine-learning allocation is a base specification without the VRP-enhanced feature set. In Europe, the strongest HMM excludes VRP, while raw VRP improves the relative ranking of the RSM family without producing benchmark dominance.
+
+\subsection{Machine-learning prediction diagnostics}
+
+Table~\ref{tab:appendix_ml_diagnostics} isolates the Random Forest base and VRP-enhanced specifications because they provide a direct comparison of prediction metrics with and without VRP variables. Lower Brier scores indicate better probability calibration.
+
+\begin{table}[H]
+\centering
+\caption{Random Forest stress-classification diagnostics}
+\label{tab:appendix_ml_diagnostics}
+\small
+\begin{tabular}{llrrrrr}
+\toprule
+Market & Specification & ROC-AUC & PR-AUC & Brier & Accuracy & Obs. \\
+\midrule
+US & Random Forest Base & 0.749 & 0.536 & 0.183 & 0.761 & 184 \\
+US & Random Forest + VRP & 0.753 & 0.521 & 0.185 & 0.739 & 184 \\
+EU & Random Forest Base & 0.617 & 0.426 & 0.222 & 0.615 & 122 \\
+EU & Random Forest + VRP & 0.619 & 0.468 & 0.215 & 0.672 & 122 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The United States comparison does not show a uniform improvement from adding VRP: ROC-AUC rises marginally, while PR-AUC, Brier score, and accuracy do not improve. The European comparison is more favorable to the VRP-enhanced specification. ROC-AUC rises slightly, PR-AUC increases from 0.426 to 0.468, and the Brier score falls from 0.222 to 0.215. This incremental predictive information nevertheless remains economically insufficient to produce robust allocation-welfare dominance.

@@ -1,2 +1,61 @@
-\section{Complete Robustness Results}
+\section{Robustness Grid and Supplementary Diagnostics}
 \label{app:robustness}
+
+The main text reports the economically relevant numerical results from the robustness analysis. This appendix documents the complete design of the parameter grid and the interpretation applied consistently across markets. The full machine-readable output grids are retained in the project under \texttt{outputs/tables/}, allowing every parameter combination to be inspected without reproducing several hundred rows in the manuscript.
+
+\begin{table}[H]
+\centering
+\caption{Robustness-grid design}
+\label{tab:appendix_robustness_grid}
+\small
+\begin{tabularx}{\textwidth}{
+>{\raggedright\arraybackslash}p{2.7cm}
+>{\raggedright\arraybackslash}p{3.6cm}
+>{\raggedright\arraybackslash}X
+}
+\toprule
+Dimension & Tested values & Economic purpose \\
+\midrule
+Transaction costs
+& 0, 10, 25, 50 bps
+& Tests whether selected direct-variance conclusions depend on near-zero stylized monthly roll costs. \\
+
+Risk-estimation window
+& 12, 24, 36, 60 months
+& Tests sensitivity of lagged volatility targeting to the amount of payoff history used for risk estimation. \\
+
+Maximum notional
+& 5\%, 10\%, 15\%, 25\%, 50\%
+& Tests whether performance depends on allowing unusually large modeled variance exposure. \\
+
+Subperiods
+& Full sample; first half; second half; pre-Covid; Covid and after
+& Tests temporal stability and whether performance is concentrated in a particular part of the historical sample. \\
+
+Crisis exclusions
+& Global Financial Crisis; European sovereign-debt crisis; Volmageddon; Covid shock; 2022 inflation/rate shock; joint exclusion
+& Tests whether a small number of major volatility episodes mechanically generate the full-sample conclusion. \\
+
+Risk aversion
+& $\gamma \in \{1,3,5,10\}$
+& Tests whether the certainty-equivalent ranking is specific to the baseline investor preference. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+For the selected United States High-VRP strategy, transaction costs are not the principal source of fragility: its Sharpe ratio moves only from approximately 0.885 at zero stylized cost to 0.869 at 50 basis points. The more important weaknesses are the 12-month risk-estimation specification, which produces a Sharpe ratio of 0.578 and a maximum drawdown of approximately -50.7\%, and the substantial differences across subperiods. Mean--variance certainty-equivalent differences remain negative relative to both balanced benchmarks for $\gamma$ from one through five and turn only slightly positive at $\gamma=10$.
+
+The European VRP-positive strategy is substantially more stable inside the model-based approximation. Its Sharpe ratio remains approximately 1.303 at 50 basis points of stylized monthly cost. All tested risk-estimation windows remain economically strong on their common aligned sample. Reducing the maximum notional to 5\% still produces a Sharpe ratio of approximately 1.482. Performance remains positive in both sample halves and in the pre- and post-Covid partitions. Joint exclusion of all designated major-crisis observations leaves 141 observations and increases the Sharpe ratio to approximately 1.877. Mean--variance certainty-equivalent differences remain positive for every tested value of $\gamma$.
+
+The corresponding machine-readable robustness files are:
+
+\begin{verbatim}
+outputs/tables/cross_market_direct_variance_robustness_costs.csv
+outputs/tables/cross_market_direct_variance_robustness_lookbacks.csv
+outputs/tables/cross_market_direct_variance_robustness_caps.csv
+outputs/tables/cross_market_direct_variance_robustness_subperiods.csv
+outputs/tables/cross_market_direct_variance_robustness_crises.csv
+outputs/tables/cross_market_direct_variance_robustness_gamma.csv
+\end{verbatim}
+
+These robustness results remain conditional on the payoff approximation described in Section~3. They do not convert the modeled return series into an observed variance-swap return and do not incorporate exact option-replication costs, collateral, margin, dealer spreads, or intramonth mark-to-market constraints.

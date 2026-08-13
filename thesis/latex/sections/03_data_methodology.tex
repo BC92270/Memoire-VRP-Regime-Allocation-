@@ -81,7 +81,7 @@ For allocation models, these variables are observed at month-end and used to det
 
 Three conventional portfolios provide the main allocation benchmarks: buy-and-hold equity, a 60/40 equity--bond portfolio, and an equal-weighted equity--bond portfolio. The static balanced portfolios are rebalanced monthly to their target weights.
 
-The 60/40 benchmark holds 60% equity and 40% bonds. The equal-weighted benchmark holds 50% in each asset. Buy-and-hold equity remains fully invested in the equity component.
+The 60/40 benchmark holds 60\% equity and 40\% bonds. The equal-weighted benchmark holds 50\% in each asset. Buy-and-hold equity remains fully invested in the equity component.
 
 Transaction costs are expressed as a proportional charge on turnover. The baseline assumption is 10 basis points per unit of turnover. For the static balanced portfolios, turnover measures the trade required to move from post-return drifted weights back to the target allocation. For the dynamic allocation models, turnover is the sum of the absolute changes in target equity and bond weights.
 
@@ -118,7 +118,7 @@ w_t^{bond}
 w_t^{eq}.
 \end{equation}
 
-Equity exposure therefore varies continuously between 80% when the estimated stress probability is zero and 20% when it is one. The portfolio return is realized in the following month.
+Equity exposure therefore varies continuously between 80\% when the estimated stress probability is zero and 20\% when it is one. The portfolio return is realized in the following month.
 
 \subsection{Markov-switching regression}
 
@@ -128,7 +128,7 @@ The dependent variable and exogenous regressors are standardized within each est
 
 As with the HMM, estimation begins after a 72-month burn-in and then uses an expanding information set. At date $t$, only observations available through $t$ are used. Filtered state probabilities at $t$ determine the portfolio for $t+1$.
 
-The RSM stress probability is mapped into the same 80%--20% equity rule as the HMM. Holding the allocation mapping fixed makes differences in portfolio outcomes primarily attributable to differences in regime estimation rather than to different portfolio-construction rules.
+The RSM stress probability is mapped into the same 80\%--20\% equity rule as the HMM. Holding the allocation mapping fixed makes differences in portfolio outcomes primarily attributable to differences in regime estimation rather than to different portfolio-construction rules.
 
 \subsection{Machine-learning stress classification}
 
@@ -155,7 +155,7 @@ Q_{0.80}
 
 Unlike the HMM and RSM implementations, the ML backtest uses a fixed 72-month rolling training window. At signal date $t$, the current features dated $t$ are observable, but training feature--label pairs end at $t-1$. Each training label refers to the subsequent outcome at $s+1$, and both stress quantiles are recalculated using only the current training window. The predicted probability at $t$ determines portfolio weights for $t+1$.
 
-The same continuous 80%--20% allocation mapping is used. Prediction quality is evaluated separately through ROC-AUC, precision--recall AUC, Brier score, log loss, accuracy, balanced accuracy, precision, and recall. Portfolio performance is evaluated independently because better statistical classification need not imply higher investor welfare.
+The same continuous 80\%--20\% allocation mapping is used. Prediction quality is evaluated separately through ROC-AUC, precision--recall AUC, Brier score, log loss, accuracy, balanced accuracy, precision, and recall. Portfolio performance is evaluated independently because better statistical classification need not imply higher investor welfare.
 
 \subsection{Model-based direct variance-payoff approximation}
 
@@ -193,7 +193,7 @@ K_t^{var}
 
 This quantity is dimensionless. It is not an observed return on invested capital. It is used as the underlying payoff input for the risk-targeted capital mapping.
 
-Four principal specifications are evaluated: a 5% annual-volatility target that is always active; a 10% target that is always active; a 10% target active only when lagged VRP is positive; and a 10% target active only when lagged VRP exceeds a lagged historical median.
+Four principal specifications are evaluated: a 5\% annual-volatility target that is always active; a 10\% target that is always active; a 10\% target active only when lagged VRP is positive; and a 10\% target active only when lagged VRP exceeds a lagged historical median.
 
 For the positive-VRP specification, exposure at settlement $t$ is permitted when $VRP_{t-1}>0$. The signal is therefore known before $RV_t$ is observed.
 
@@ -227,7 +227,7 @@ N_t^{raw}
 }.
 \end{equation}
 
-The implemented notional is non-negative, capped at 0.25, and multiplied by the relevant entry gate. The value 0.25 corresponds to a maximum absolute notional of 25%.
+The implemented notional is non-negative, capped at 0.25, and multiplied by the relevant entry gate. The value 0.25 corresponds to a maximum absolute notional of 25\%.
 
 Each modeled variance exposure represents a one-month position that settles and must be renewed. The implementation cost is therefore charged on the full absolute notional entered each month:
 
@@ -258,7 +258,7 @@ where the baseline cost rate $c$ is 10 basis points. The change $|N_t-N_{t-1}|$ 
 
 \subsection{Performance, welfare, and statistical inference}
 
-Performance is evaluated using annualized geometric return, annualized volatility, Sharpe ratio, Sortino ratio, maximum drawdown, Calmar ratio, empirical 95% VaR and CVaR, and average turnover.
+Performance is evaluated using annualized geometric return, annualized volatility, Sharpe ratio, Sortino ratio, maximum drawdown, Calmar ratio, empirical 95\% VaR and CVaR, and average turnover.
 
 The Sharpe ratio uses monthly arithmetic mean return, monthly standard deviation, and a zero risk-free rate. The Sortino ratio uses a zero monthly minimum acceptable return. Its downside deviation is calculated over the complete sample, so positive returns contribute zero downside rather than being removed.
 
@@ -296,7 +296,7 @@ Sampling uncertainty is assessed using a paired moving-block bootstrap, followin
 
 Robustness is evaluated separately for the allocation and direct-payoff channels. Allocation tests examine transaction-cost sensitivity, no-trade bands, and partial rebalancing. Direct-variance robustness varies transaction costs, the payoff-volatility estimation window, notional caps, subperiods, crisis exclusions, and investor risk aversion.
 
-The direct-variance cost grid contains 0, 10, 25, and 50 basis points. Risk-estimation windows of 12, 24, 36, and 60 months are considered. Maximum notionals of 5%, 10%, 15%, 25%, and 50% are tested. Subperiod and crisis-exclusion exercises evaluate whether results are concentrated in a small set of episodes.
+The direct-variance cost grid contains 0, 10, 25, and 50 basis points. Risk-estimation windows of 12, 24, 36, and 60 months are considered. Maximum notionals of 5\%, 10\%, 15\%, 25\%, and 50\% are tested. Subperiod and crisis-exclusion exercises evaluate whether results are concentrated in a small set of episodes.
 
 Several interpretation rules are maintained throughout the analysis. Allocation and direct-variance strategies are compared only within appropriately aligned samples. The exploratory Pure VRP Proxy is reported separately from the implementable evidence layer. Historical performance is not interpreted as evidence of future profitability.
 

@@ -1,2 +1,84 @@
 \section{Data Construction and Diagnostics}
 \label{app:data}
+
+This appendix summarizes the empirical sample architecture and the principal diagnostics used to validate the variance-payoff construction. It distinguishes the monthly allocation panel from the longer settlement panel used for the model-based direct variance-payoff approximation.
+
+\begin{table}[H]
+\centering
+\caption{Final empirical sample architecture}
+\label{tab:appendix_sample_architecture}
+\small
+\begin{tabular}{lrrll}
+\toprule
+Evidence layer & US obs. & EU obs. & US start & EU start \\
+\midrule
+Monthly feature set & 257 & 195 & 2005-03-31 & 2009-05-31 \\
+Allocation OOS sample & 184 & 122 & 2011-04-30 & 2015-06-30 \\
+Direct payoff diagnostics & 256 & 194 & 2005-04-30 & 2009-06-30 \\
+Direct strategy sample & 232 & 170 & 2007-04-30 & 2011-06-30 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4em}
+\begin{minipage}{0.92\textwidth}
+\footnotesize
+All final samples end on 31 July 2026. Allocation and direct-variance statistics are evaluated on their own internally aligned samples and are not mechanically ranked across evidence layers.
+\end{minipage}
+\end{table}
+
+Daily equity and bond log returns are constructed from consecutive prices. Returns spanning more than seven calendar days are invalidated before volatility estimation. Realized variance uses a complete trailing 21-observation window and is annualized before month-end sampling. The volatility-index level is converted into an implied-variance proxy by squaring decimal VIX or VSTOXX volatility.
+
+The European volatility history requires local source harmonization. Date formats are parsed explicitly, duplicate observations are removed, and the same calendar-gap rule is applied before realized-variance construction. The resulting European sample should therefore be interpreted as a controlled reconstructed history rather than as a single uninterrupted institutional feed.
+
+\subsection{Direct-payoff diagnostics}
+
+Table~\ref{tab:appendix_payoff_diagnostics} reports diagnostics for the underlying normalized short-variance payoff before the final lagged risk-targeting alignment.
+
+\begin{table}[H]
+\centering
+\caption{Underlying normalized short-variance payoff diagnostics}
+\label{tab:appendix_payoff_diagnostics}
+\small
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+Market
+& Obs.
+& Mean strike
+& Mean RV
+& Positive
+& Mean norm.
+& Skew
+& 1\% quantile
+& Worst
+& Below -100\% \\
+\midrule
+US
+& 256
+& 4.35\%
+& 3.57\%
+& 82.42\%
+& 0.253
+& -3.849
+& -4.080
+& -4.432
+& 12 (4.69\%) \\
+
+EU
+& 194
+& 5.22\%
+& 4.02\%
+& 78.35\%
+& 0.239
+& -2.231
+& -2.060
+& -2.439
+& 8 (4.12\%) \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+The payoff diagnostics illustrate why positive average variance carry cannot be interpreted as an arbitrage. The normalized payoff is positive in most settlement observations, but its distribution is strongly negatively skewed. Both markets contain observations in which the normalized loss exceeds 100\% of the strike proxy. These tail observations motivate the lagged risk-targeting rule, notional cap, drawdown analysis, CVaR analysis, and certainty-equivalent evaluation used in the main empirical results.
+
+The normalized payoff remains a dimensionless model input rather than an observed return on invested capital. Its construction uses lagged implied variance as the strike proxy and the current trailing realized-variance estimate as settlement. Exact contractual variance-swap replication would require option-surface integration, maturity matching, contract-specific notional conventions, collateral, margin, and executable transaction-cost data.
