@@ -122,15 +122,27 @@
 \printbibliography
 
 % ============================================================
-% APPENDICES
-% Excluded from the university's 35-page limit
+% PAGE COUNT BEFORE APPENDICES
+% University limit: 35 pages including bibliography.
 % ============================================================
 
 \clearpage
 
-\typeout{
-MAIN_THESIS_PAGES=
-\number\numexpr\value{page}-1\relax
-}
+\typeout{MAIN_THESIS_PAGES=\number\numexpr\value{page}-1\relax}
+
+% ============================================================
+% APPENDICES
+% Excluded from the university's 35-page limit.
+% ============================================================
 
 \appendix
+
+\input{appendix/A_additional_model_results}
+
+\input{appendix/B_robustness_tables}
+
+\input{appendix/C_data_construction}
+
+\input{appendix/D_reproducibility}
+
+\end{document}

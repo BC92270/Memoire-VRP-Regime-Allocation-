@@ -1,4 +1,98 @@
 \section{Literature Review}
 \label{sec:literature}
 
-Final literature review pending.
+The research question lies at the intersection of four strands of literature: variance risk premia, return predictability, regime-dependent asset allocation, and empirical portfolio evaluation. These strands address related questions but do not assign the same economic role to volatility information. The variance-risk-premium literature studies compensation for bearing variance and volatility risk. Predictability studies treat the premium as information about future investment opportunities. Regime-switching models allow portfolio decisions to depend on latent states. Portfolio-choice research, finally, provides the benchmark discipline required to determine whether additional modelling complexity creates economic value.
+
+The distinction between these roles is central to this thesis. A variable can contain predictive information without generating a superior portfolio. A variance-linked payoff can also earn compensation even when the same variable adds little to an allocation model. The relevant issue is therefore not simply whether the Variance Risk Premium exists, but how its economic value changes with the mechanism used to exploit it.
+
+\subsection{Variance Risk Premium: definition and measurement}
+
+At the conceptual level, the Variance Risk Premium compares the market price of future variance under the risk-neutral probability measure with expected variance under the physical measure. A convenient representation is
+
+\begin{equation}
+VRP^{Q-P}_t
+=
+\mathbb{E}^{Q}_{t}
+\left[
+RV_{t,t+h}
+\right]
+-
+\mathbb{E}^{P}_{t}
+\left[
+RV_{t,t+h}
+\right].
+\end{equation}
+
+where \(Q\) denotes the risk-neutral measure, \(P\) the physical measure, and \(RV_{t,t+h}\) future realized variance over horizon \(h\). In empirical work, neither expectation is directly observed. Researchers therefore construct option-implied and realized-variance measures.
+
+\textcite{CarrWu2009} provide a central link between this concept and variance swaps. They show that the risk-neutral expected value of future return variance, or variance swap rate, can be approximated with a portfolio of options. Their empirical measure compares subsequently realized variance with the synthetic variance swap rate. Sign conventions differ across the literature. This thesis uses
+
+\begin{equation}
+VRP_t = IV_t - RV_t.
+\end{equation}
+
+so that a positive value means that the implied-variance proxy exceeds the realized-variance proxy. This convention is useful for interpreting positive variance carry from the perspective of a seller of variance exposure.
+
+The distinction between a theoretical variance risk premium and an empirical proxy is important. A volatility index is not itself a realized return on a variance-swap position. It summarizes option-implied information under a specific index methodology. Likewise, realized variance depends on sampling frequency, horizon, and annualization. Consequently, the thesis uses VIX- and VSTOXX-based measures as empirical proxies for the underlying variance-pricing mechanism rather than claiming to observe the exact contractual variance premium.
+
+\subsection{Economic interpretation of variance compensation}
+
+The persistence of a spread between implied and subsequently realized variance is commonly interpreted as compensation for bearing adverse volatility states. Investors value protection against large market declines and volatility spikes. Sellers of that protection are exposed to losses precisely when marginal utility and risk aversion are likely to be high.
+
+Evidence from option markets supports this interpretation. \textcite{BakshiKapadia2003} study delta-hedged S\&P 500 index-option portfolios and document returns consistent with a negative market volatility risk premium from the perspective of option buyers. Their evidence implies that option sellers receive compensation for bearing volatility risk. This result is important for the payoff channel examined in the thesis. Positive average carry is not a free return. It is compensation associated with exposure to states in which realized volatility can rise sharply.
+
+\textcite{DrechslerYaron2011} provide a complementary equilibrium interpretation. They define the variance premium using squared VIX relative to expected realized variance and show that it contains information about attitudes toward economic uncertainty. Their framework generates time variation in the premium and links that variation to return predictability. This interpretation reinforces the view that the variance premium can simultaneously represent a priced risk and a state variable.
+
+These findings motivate a necessary distinction. The existence of compensation for volatility risk does not imply that every empirical implementation of short variance will be attractive after risk scaling, costs, and tail losses. It also does not imply that the same variable must improve conventional stock--bond allocation. Economic value has to be evaluated separately for each channel.
+
+\subsection{Predictive information in the Variance Risk Premium}
+
+A second strand of literature studies whether the variance premium contains information about subsequent equity-market outcomes. \textcite{BollerslevTauchenZhou2009} show that the difference between implied and realized variation explains a nontrivial part of the time-series variation in aggregate stock-market returns. In their sample, higher variance risk premia predict higher future returns, with particularly strong evidence at intermediate horizons.
+
+Their result is relevant here for two reasons. First, it establishes that the implied--realized variance gap can contain information beyond contemporaneous volatility. Second, it suggests that VRP-related variables may be useful as conditioning variables even when they are not directly traded.
+
+The measurement distinction remains important. \textcite{BollerslevTauchenZhou2009} emphasize model-free option-implied variation and realized measures constructed from high-frequency data. The present thesis uses a different data architecture based on volatility indices and monthly features. Their results therefore motivate the informational hypothesis but do not mechanically imply that the empirical signals used here should have identical forecasting properties.
+
+The same caution applies to transformations of the premium. A raw difference and a relative implied-to-realized variance measure can encode different information when the volatility level changes. This thesis consequently treats alternative VRP transformations as competing empirical features rather than assuming ex ante that one representation is universally superior.
+
+\subsection{Regime switching and time-varying investment opportunities}
+
+If the information contained in volatility variables changes with market conditions, a constant-parameter allocation model may be too restrictive. Regime-switching models provide a natural framework for representing discrete changes in the distribution of financial variables.
+
+The econometric foundation is the Markov-switching framework of \textcite{Hamilton1989}. The key idea is that observed data are generated under latent states whose transitions follow a Markov process. The state is not observed directly and must be inferred probabilistically from the data. In financial applications, this allows means, variances, or other distributional characteristics to differ between normal and stressed environments.
+
+This structure is economically relevant for asset allocation because investment opportunities can vary across states. \textcite{AngBekaert2002} analyse international portfolio choice when volatility and correlations are regime dependent. Their results show that correlations can rise in volatile bear states and that ignoring regime changes can affect portfolio decisions. The contribution is not simply that volatility varies through time. It is that the joint investment opportunity set can change in a way that matters for optimal allocation.
+
+\textcite{GuidolinTimmermann2007} provide further evidence in a stock--bond setting. Their regime-switching model identifies distinct states associated with substantially different return distributions. Optimal allocations change as investors update state probabilities, and their out-of-sample analysis supports the economic relevance of accounting for regimes.
+
+These studies motivate the allocation channel used in this thesis. Hidden Markov Models and Markov-switching regressions estimate latent stress probabilities from observable information. VRP-related variables are introduced as potential state variables. The empirical question is whether they improve the economic quality of those inferred states, not merely whether they change estimated probabilities.
+
+\subsection{Machine learning as an additional prediction layer}
+
+Regime-switching models impose a particular latent-state structure. Machine-learning methods offer a less restrictive way to model nonlinear relationships and interactions among predictors. \textcite{GuKellyXiu2020} demonstrate the relevance of such methods for empirical asset pricing. Their comparative analysis shows that flexible methods can improve prediction by capturing nonlinear interactions that conventional specifications may miss.
+
+The machine-learning component of this thesis has a narrower objective. It is not intended to replace the economic interpretation of VRP or to establish a new asset-pricing model. Instead, it provides an additional test of whether VRP-related features contain incremental information for stress classification. This distinction matters because better classification is not equivalent to higher investor welfare.
+
+The use of machine learning also increases the importance of out-of-sample discipline. Flexible models can fit complex relationships, but their in-sample performance is not sufficient evidence of economic value. The relevant comparison is therefore based on rolling out-of-sample predictions and subsequent portfolio outcomes.
+
+\subsection{Benchmark discipline and economic evaluation}
+
+A sophisticated model should not be considered successful merely because it produces statistically interesting state probabilities. It must improve outcomes relative to credible alternatives. This is particularly important in portfolio choice, where parameter estimation can offset the theoretical benefits of optimization.
+
+\textcite{DeMiguelGarlappiUppal2009} provide a strong benchmark for this principle. They compare fourteen portfolio models across seven empirical data sets and find that none consistently outperforms the naive \(1/N\) rule in Sharpe ratio, certainty-equivalent return, and turnover. Their results illustrate how estimation error can eliminate the apparent gains from more complex portfolio rules.
+
+This finding directly informs the empirical design of the thesis. Dynamic allocation models are evaluated against buy-and-hold equity, a 60/40 stock--bond portfolio, and equal weighting. Performance is judged using both statistical and economic metrics. Sharpe and Sortino ratios measure risk-adjusted performance, while drawdown and tail-risk measures capture dimensions hidden by variance alone. Turnover and transaction costs address implementation. Certainty equivalents and bootstrap inference test whether observed differences are economically meaningful rather than products of sampling variation.
+
+The same principle applies to the direct variance-payoff layer. A positive average payoff is not sufficient. The strategy must be evaluated after lagged risk scaling, exposure limits, roll costs, tail losses, and alternative investor risk aversion.
+
+\subsection{Research positioning}
+
+The reviewed literature establishes several results that motivate the thesis. Option markets contain compensation for volatility and variance risk. The implied--realized variance gap can contain predictive information. Investment opportunities can change across latent regimes. Flexible predictive methods can capture nonlinear relationships. At the same time, simple portfolio rules remain difficult benchmarks to beat out of sample.
+
+The thesis combines these ideas but asks a narrower question than any one of these literatures individually. It separates two economic channels generated from related variance information. In the first, VRP is an informational variable used to influence equity--bond allocation through HMM, Markov-switching, or machine-learning models. In the second, variance information enters a model-based direct variance-payoff approximation.
+
+This comparison is conducted for both the United States and Europe. The cross-market design is useful because evidence from one options market need not generalize mechanically to another. Differences in index construction, sample history, volatility dynamics, and market structure can affect both state identification and payoff behaviour.
+
+The contribution is therefore not based on an assumption that one channel must dominate. The empirical design allows three outcomes. VRP may create value primarily through information, primarily through payoff exposure, or neither channel may provide robust gains relative to simple portfolios. It also allows the answer to differ by market.
+
+This leads to the central empirical proposition tested in the remainder of the thesis: the economic value of the Variance Risk Premium may depend not only on the information contained in the variable, but also on the payoff structure through which that information is transformed into portfolio returns.
