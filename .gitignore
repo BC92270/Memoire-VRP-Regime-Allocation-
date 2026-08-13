@@ -31,3 +31,4 @@ thesis/latex/*.synctex.gz
 
 # Generated final thesis PDF
 thesis/latex/main.pdf
+thesis/latex/*-SAVE-ERROR
