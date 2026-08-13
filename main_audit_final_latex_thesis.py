@@ -16,6 +16,13 @@ SECTIONS = [
     ROOT / "sections/06_conclusion.tex",
 ]
 
+APPENDICES = [
+    ROOT / "appendix/A_additional_model_results.tex",
+    ROOT / "appendix/B_robustness_tables.tex",
+    ROOT / "appendix/C_data_construction.tex",
+    ROOT / "appendix/D_reproducibility.tex",
+]
+
 MAIN = ROOT / "main.tex"
 BIB = ROOT / "references.bib"
 LOG = ROOT / "main.log"
@@ -29,7 +36,7 @@ warnings: list[str] = []
 # Files
 # ============================================================
 
-for path in [MAIN, BIB, *SECTIONS]:
+for path in [MAIN, BIB, *SECTIONS, *APPENDICES]:
     if not path.exists():
         errors.append(
             f"Missing required file: {path}"
@@ -44,8 +51,21 @@ for path in SECTIONS:
             encoding="utf-8"
         )
 
+appendix_texts = {}
+
+for path in APPENDICES:
+    if path.exists():
+        appendix_texts[path] = path.read_text(
+            encoding="utf-8"
+        )
+
+all_texts = {
+    **texts,
+    **appendix_texts,
+}
+
 combined = "\n".join(
-    texts.values()
+    all_texts.values()
 )
 
 
@@ -208,7 +228,7 @@ if research_fragment not in conclusion:
 all_labels: list[tuple[str, str]] = []
 all_refs: list[tuple[str, str]] = []
 
-for path, text in texts.items():
+for path, text in all_texts.items():
     if text.count("{") != text.count("}"):
         errors.append(
             f"Unbalanced braces: {path}"
@@ -355,7 +375,7 @@ citation_pattern = re.compile(
     r"\{([^}]+)\}"
 )
 
-for text in texts.values():
+for text in all_texts.values():
     for group in citation_pattern.findall(text):
         for key in group.split(","):
             citation_keys.add(

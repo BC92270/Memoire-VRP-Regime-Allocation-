@@ -5,6 +5,31 @@ This section evaluates the two empirical channels defined previously. The first 
 
 The allocation comparison contains 184 out-of-sample observations in the United States and 122 in Europe. The direct-variance strategy comparison contains 232 observations in the United States and 170 in Europe. The underlying payoff diagnostics contain 256 settlement observations in the United States and 194 in Europe. All comparisons below therefore preserve the sample appropriate to the evidence layer being discussed.
 
+Figure~\ref{fig:vrp-components} provides descriptive context for the variance measures used throughout the empirical analysis. The panels display the implied- and realized-variance components underlying the empirical VRP construction in the two markets. The purpose of the figure is descriptive rather than causal: it illustrates the time variation of the variance measures that subsequently enter the allocation and direct-payoff exercises.
+
+\begin{figure}[htbp]
+\centering
+
+\begin{subfigure}[t]{0.49\textwidth}
+\centering
+\includegraphics[
+    width=\linewidth
+]{us_mvp1_vrp_components.png}
+\caption{United States}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.49\textwidth}
+\centering
+\includegraphics[
+    width=\linewidth
+]{eu_mvp1_vrp_components.png}
+\caption{Europe}
+\end{subfigure}
+
+\caption{Implied variance, realized variance, and empirical VRP components}
+\label{fig:vrp-components}
+\end{figure}
+
 \subsection{Equity--bond allocation: United States}
 
 Table~\ref{tab:us_allocation} reports the principal United States allocation results. Buy-and-hold equity generates the highest annualized return, at 13.96\%, but also the highest volatility and the largest drawdown among the benchmark portfolios. The 60/40 and equal-weighted portfolios reduce risk substantially. Their Sharpe ratios, 1.024 and 1.025 respectively, provide demanding benchmarks for the dynamic models.
@@ -79,6 +104,31 @@ The strongest RSM specification is RSM RV + Raw VRP. Its maximum drawdown of -15
 The strongest machine-learning allocation is ML Logistic Base, with a Sharpe ratio of 1.002. Importantly, this leading United States ML specification does not contain the VRP-enhanced feature set. The United States evidence therefore does not support a general claim that adding VRP variables improves allocation performance.
 
 Taken together, the United States allocation results indicate that the dynamic models can alter the distribution of portfolio risk, particularly drawdown, without establishing robust dominance over simple balanced portfolios. The distinction between a better downside statistic and a better investment strategy is economically important.
+
+The implementation mechanism of the selected United States HMM is illustrated in Figure~\ref{fig:hmm-mechanism}. The first panel reports the filtered stress probabilities and the second reports the corresponding equity weights. The figure shows how changes in the inferred latent state are mapped into portfolio exposure rather than treating the HMM as a purely statistical classification device.
+
+\begin{figure}[htbp]
+\centering
+
+\begin{subfigure}[t]{0.49\textwidth}
+\centering
+\includegraphics[
+    width=\linewidth
+]{us_mvp2_hmm_stress_probabilities.png}
+\caption{Filtered stress probabilities}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.49\textwidth}
+\centering
+\includegraphics[
+    width=\linewidth
+]{us_mvp2_hmm_equity_weights.png}
+\caption{Resulting equity weights}
+\end{subfigure}
+
+\caption{Selected United States HMM: state probability and portfolio mapping}
+\label{fig:hmm-mechanism}
+\end{figure}
 
 \subsection{Equity--bond allocation: Europe}
 
@@ -164,6 +214,31 @@ The cross-market allocation evidence rejects a simple interpretation in which gr
 The role of VRP is also model dependent. HMM RV + Log VRP is the strongest HMM in the United States, whereas the strongest European HMM excludes VRP. Raw VRP improves the relative ranking of the RSM family in both markets, but neither RSM becomes a dominant allocation strategy. The leading United States ML specification excludes VRP, while the leading European ML specification includes it.
 
 The allocation layer therefore provides evidence that variance information can affect estimated states and selected portfolio-risk characteristics, but it does not establish a universal allocation premium.
+
+Figure~\ref{fig:allocation-cumulative} complements the summary statistics by displaying cumulative performance for the final implementable allocation comparisons. The visual evidence reinforces the table-based conclusion: the dynamic models can alter the path and drawdown profile of wealth, but they do not generate uniform cross-market dominance over the simple benchmarks.
+
+\begin{figure}[htbp]
+\centering
+
+\begin{subfigure}[t]{0.49\textwidth}
+\centering
+\includegraphics[
+    width=\linewidth
+]{us_final_implementable_cumulative_returns.png}
+\caption{United States}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.49\textwidth}
+\centering
+\includegraphics[
+    width=\linewidth
+]{eu_final_implementable_cumulative_returns.png}
+\caption{Europe}
+\end{subfigure}
+
+\caption{Cumulative performance of the final implementable allocation comparisons}
+\label{fig:allocation-cumulative}
+\end{figure}
 
 \subsection{Underlying direct variance-payoff diagnostics}
 
@@ -266,6 +341,31 @@ This result is economically different from the European allocation evidence. Add
 This is the first central cross-channel result of the thesis: weak evidence for VRP as a universal allocation feature does not imply weak variance carry. Information value and payoff value are distinct empirical objects.
 
 The result must nevertheless retain the methodological qualification established earlier. The strategy is a model-based direct variance-payoff approximation. It is not an observed variance-swap return and does not include an exact option-replicated strike, contractual variance notional, collateral and margin processes, dealer bid--ask spreads, or daily mark-to-market.
+
+Figure~\ref{fig:direct-variance-cross-market} summarizes the central cross-market direct-payoff result. Panel (a) compares the Sharpe ratio of the selected direct-variance strategy with the two balanced benchmarks. Panel (b) reports the corresponding fee-equivalent welfare difference at $\gamma=5$. The two panels highlight why Sharpe-ratio improvement alone is insufficient for the United States conclusion, while the European result remains economically much stronger under the welfare criterion.
+
+\begin{figure}[htbp]
+\centering
+
+\begin{subfigure}[t]{0.49\textwidth}
+\centering
+\includegraphics[
+    width=\linewidth
+]{direct_variance_sharpe_cross_market.png}
+\caption{Sharpe-ratio comparison}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.49\textwidth}
+\centering
+\includegraphics[
+    width=\linewidth
+]{direct_variance_welfare_cross_market.png}
+\caption{Fee-equivalent welfare comparison}
+\end{subfigure}
+
+\caption{Cross-market economic comparison of the selected model-based direct variance-payoff strategies}
+\label{fig:direct-variance-cross-market}
+\end{figure}
 
 \subsection{Investor-welfare evidence}
 

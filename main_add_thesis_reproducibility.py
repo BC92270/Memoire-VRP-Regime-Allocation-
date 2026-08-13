@@ -1,3 +1,77 @@
+from pathlib import Path
+
+
+METHODOLOGY = Path(
+    "thesis/latex/sections/"
+    "03_data_methodology.tex"
+)
+
+APPENDIX = Path(
+    "thesis/latex/appendix/"
+    "D_reproducibility.tex"
+)
+
+
+methodology = METHODOLOGY.read_text(
+    encoding="utf-8"
+)
+
+
+marker = (
+    "Its results therefore provide evidence "
+    "about a stylized variance-carry mechanism "
+    "rather than a verified historical "
+    "variance-swap return available to an "
+    "investor."
+)
+
+
+addition = r"""
+
+\subsection{Code, Data, and Reproducibility}
+\label{subsec:reproducibility}
+
+All empirical analyses in this thesis are implemented in Python. The project repository separates data ingestion and feature construction, econometric and machine-learning models, portfolio construction, welfare analysis, robustness testing, reporting, and LaTeX production. The empirical tables and figures reported in the thesis are generated from the same codebase used to estimate the models and construct the portfolios rather than being reconstructed manually for presentation.
+
+The data pipeline combines programmatically downloaded market series with locally supplied files when an external history cannot be reproduced reliably through the same interface. Date parsing, duplicate removal, numerical cleaning, sample filtering, temporal alignment, and calendar-gap treatment are implemented explicitly in the source code. Where redistribution of a raw dataset is restricted or impractical, replication requires access to the original source or an equivalent local input file.
+
+Raw and processed datasets are not assumed to be bundled automatically with the version-controlled repository. Final thesis-facing tables and figures are retained separately so that the numerical results reported in the manuscript can be checked against the outputs produced by the empirical pipeline.
+
+The computational sequence proceeds from baseline market and benchmark construction to HMM and RSM estimation, robustness analysis, welfare analysis, machine-learning stress classification, and the model-based direct variance-payoff extension. Appendix~\ref{app:reproducibility} documents the principal scripts, input locations, output directories, and replication sequence. Appendix~\ref{app:data} documents the principal data-construction diagnostics.
+""".strip()
+
+
+if (
+    r"\subsection{Code, Data, and Reproducibility}"
+    in methodology
+):
+    raise SystemExit(
+        "Code/data subsection already exists."
+    )
+
+count = methodology.count(
+    marker
+)
+
+if count != 1:
+    raise SystemExit(
+        "Expected insertion marker exactly once, "
+        f"found {count}."
+    )
+
+methodology = methodology.replace(
+    marker,
+    marker + "\n\n" + addition,
+    1,
+)
+
+METHODOLOGY.write_text(
+    methodology,
+    encoding="utf-8",
+)
+
+
+appendix = r"""
 \section{Reproducibility}
 \label{app:reproducibility}
 
@@ -83,3 +157,21 @@ python main_audit_final_latex_thesis.py
 \end{verbatim}
 
 The audit checks critical numerical markers, model-timing terminology, citation keys, internal references, deprecated empirical conclusions, and the university page limit before the appendices.
+""".strip() + "\n"
+
+
+APPENDIX.write_text(
+    appendix,
+    encoding="utf-8",
+)
+
+
+print(
+    "PASS — methodology reproducibility "
+    "subsection added"
+)
+
+print(
+    "PASS — Appendix D reproducibility "
+    "material written"
+)

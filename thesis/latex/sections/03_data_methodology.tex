@@ -281,6 +281,7 @@ For strategy $s$ and benchmark $b$, the welfare difference is
 \Delta CEQ_{s,b}
 =
 CEQ_s
+-
 CEQ_b.
 \end{equation}
 
@@ -297,3 +298,14 @@ The direct-variance cost grid contains 0, 10, 25, and 50 basis points. Risk-esti
 Several interpretation rules are maintained throughout the analysis. Allocation and direct-variance strategies are compared only within appropriately aligned samples. The exploratory Pure VRP Proxy is reported separately from the implementable evidence layer. Historical performance is not interpreted as evidence of future profitability.
 
 Most importantly, the direct-variance layer is described throughout as a model-based direct variance-payoff approximation. It does not reconstruct an exact option-replicated variance-swap strike, contractual variance notional, collateral account, variation margin, dealer bid--ask spread, counterparty exposure, or daily mark-to-market path. Its results therefore provide evidence about a stylized variance-carry mechanism rather than a verified historical variance-swap return available to an investor.
+
+\subsection{Code, Data, and Reproducibility}
+\label{subsec:reproducibility}
+
+All empirical analyses in this thesis are implemented in Python. The project repository separates data ingestion and feature construction, econometric and machine-learning models, portfolio construction, welfare analysis, robustness testing, reporting, and LaTeX production. The empirical tables and figures reported in the thesis are generated from the same codebase used to estimate the models and construct the portfolios rather than being reconstructed manually for presentation.
+
+The data pipeline combines programmatically downloaded market series with locally supplied files when an external history cannot be reproduced reliably through the same interface. Date parsing, duplicate removal, numerical cleaning, sample filtering, temporal alignment, and calendar-gap treatment are implemented explicitly in the source code. Where redistribution of a raw dataset is restricted or impractical, replication requires access to the original source or an equivalent local input file.
+
+Raw and processed datasets are not assumed to be bundled automatically with the version-controlled repository. Final thesis-facing tables and figures are retained separately so that the numerical results reported in the manuscript can be checked against the outputs produced by the empirical pipeline.
+
+The computational sequence proceeds from baseline market and benchmark construction to HMM and RSM estimation, robustness analysis, welfare analysis, machine-learning stress classification, and the model-based direct variance-payoff extension. Appendix~\ref{app:reproducibility} documents the principal scripts, input locations, output directories, and replication sequence. Appendix~\ref{app:data} documents the principal data-construction diagnostics.
