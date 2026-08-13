@@ -1,4 +1,299 @@
 \section{Data and Methodology}
 \label{sec:methodology}
 
-Final methodology pending.
+The empirical design separates two distinct uses of variance information. The first is an informational allocation channel, in which volatility and Variance Risk Premium variables enter models that determine equity--bond weights. The second is a model-based direct variance-payoff channel, in which lagged implied variance is compared with subsequent realized variance. The two layers are evaluated jointly but are not treated as mechanically comparable investment strategies because they use different payoff mappings and aligned samples.
+
+\subsection{Data, markets, and sample construction}
+
+The analysis covers the United States and Europe. The United States is represented by a broad equity-market series based on the S\&P 500, VIX as the implied-volatility measure, and AGG as the defensive bond asset. Europe is represented by the EURO STOXX 50, VSTOXX/V2TX as the implied-volatility measure, and IEAG.AS as the bond component.
+
+Raw observations are processed at daily frequency because realized variance requires daily equity returns. Portfolio decisions and performance evaluation are then conducted at monthly frequency. At each month-end, the latest valid volatility features are retained and equity and bond holding-period returns are calculated from month-end prices.
+
+The final validated empirical run ends on 31 July 2026. The United States monthly feature set contains 257 observations and the European feature set contains 195. After the initial estimation requirement and one-step-ahead alignment, the common allocation samples contain 184 observations in the United States and 122 in Europe. The direct variance-payoff panels contain 256 and 194 valid settlement observations, respectively. After lagged risk estimation and common-strategy alignment, the corresponding direct-variance strategy samples contain 232 observations in the United States and 170 in Europe.
+
+The two evidence layers are always evaluated on their own internally aligned samples. Performance statistics from the allocation sample are therefore not mechanically ranked against statistics from the direct-variance sample.
+
+\subsection{Return construction and variance measures}
+
+Daily equity and bond log returns are calculated from consecutive prices. Let $P_d$ denote the relevant daily price. The log return is
+
+\begin{equation}
+r_d
+=
+\log
+\left(
+\frac{P_d}{P_{d-1}}
+\right).
+\end{equation}
+
+Returns spanning more than seven calendar days are set to missing. This prevents a price movement accumulated over a long data interruption from being interpreted as a single-day return. Because realized variance requires a complete 21-observation window, this treatment also prevents long data gaps from contaminating subsequent volatility estimates.
+
+Annualized realized variance is constructed from the most recent 21 valid daily equity log returns:
+
+\begin{equation}
+RV_d
+=
+\frac{252}{21}
+\sum_{j=0}^{20}
+r_{d-j}^{2}.
+\end{equation}
+
+The resulting quantity is a trailing 21-observation realized-variance estimate sampled at month-end. It is not an exact contractual calendar-month variance realization.
+
+Let $V_t$ denote the VIX or VSTOXX index level in volatility percentage points. The implied-variance proxy is
+
+\begin{equation}
+IV_t
+=
+\left(
+\frac{V_t}{100}
+\right)^2.
+\end{equation}
+
+This conversion treats the volatility index as an annualized implied-volatility measure. It does not reconstruct an exact variance-swap strike from the underlying option surface.
+
+Two principal transformations of the Variance Risk Premium are used. The raw proxy is
+
+\begin{equation}
+VRP_t
+=
+IV_t
+RV_t,
+\end{equation}
+
+while the relative transformation is
+
+\begin{equation}
+LogVRP_t
+=
+\log
+\left(
+\frac{IV_t}{RV_t}
+\right).
+\end{equation}
+
+Log realized variance and log implied variance are also retained as features. Small positive numerical floors are applied before logarithmic transformation to avoid undefined values.
+
+For allocation models, these variables are observed at month-end and used to determine the following period's portfolio. They are therefore informational state variables rather than derivative returns.
+
+\subsection{Benchmark portfolios and implementation costs}
+
+Three conventional portfolios provide the main allocation benchmarks: buy-and-hold equity, a 60/40 equity--bond portfolio, and an equal-weighted equity--bond portfolio. The static balanced portfolios are rebalanced monthly to their target weights.
+
+The 60/40 benchmark holds 60% equity and 40% bonds. The equal-weighted benchmark holds 50% in each asset. Buy-and-hold equity remains fully invested in the equity component.
+
+Transaction costs are expressed as a proportional charge on turnover. The baseline assumption is 10 basis points per unit of turnover. For the static balanced portfolios, turnover measures the trade required to move from post-return drifted weights back to the target allocation. For the dynamic allocation models, turnover is the sum of the absolute changes in target equity and bond weights.
+
+This benchmark design follows the principle that model complexity should be evaluated relative to transparent and difficult-to-beat alternatives rather than in isolation, consistent with the empirical portfolio-choice evidence discussed in \textcite{DeMiguelGarlappiUppal2009}.
+
+\subsection{Hidden Markov Model allocation}
+
+The first regime framework is a two-state Gaussian Hidden Markov Model. The model follows the latent-state logic introduced by \textcite{Hamilton1989}, but it is applied here to financial state identification rather than macroeconomic regime dating.
+
+Input features are standardized within each estimation sample. The principal specifications are HMM RV, HMM RV + Raw VRP, and HMM RV + Log VRP. They combine monthly equity returns with log realized variance and, where applicable, one of the VRP transformations. Additional implied-volatility specifications are used as specification-grid diagnostics.
+
+The Gaussian HMM uses two latent states and a diagonal covariance structure. Because numerical state labels have no inherent economic meaning, the stress state is identified ex post within each estimation sample as the state associated with the highest average realized variance.
+
+A crucial timing feature is that the HMM does not use full-sample state estimates. The out-of-sample exercise begins only after 72 monthly observations are available. At each subsequent signal date $t$, the model is re-estimated using all observations available from the beginning of the sample through $t$. The estimation history therefore expands recursively after the 72-month burn-in. No future observation enters the state estimate used for the next holding period.
+
+Let $p_t^{stress}$ denote the filtered probability of the identified stress state. The equity allocation is
+
+\begin{equation}
+w_t^{eq}
+=
+0.80
+0.60
+p_t^{stress},
+\end{equation}
+
+and the bond allocation is
+
+\begin{equation}
+w_t^{bond}
+=
+1
+w_t^{eq}.
+\end{equation}
+
+Equity exposure therefore varies continuously between 80% when the estimated stress probability is zero and 20% when it is one. The portfolio return is realized in the following month.
+
+\subsection{Markov-switching regression}
+
+The second regime model is a two-regime Markov-switching regression. Monthly equity return is the dependent variable. Depending on the specification, the model includes no exogenous volatility variable, log realized variance, log realized variance with raw VRP, or log realized variance with LogVRP.
+
+The dependent variable and exogenous regressors are standardized within each estimation sample. The regression allows regime-dependent intercepts, exogenous coefficients, and variance. The stress regime is again defined as the regime associated with the highest average realized variance.
+
+As with the HMM, estimation begins after a 72-month burn-in and then uses an expanding information set. At date $t$, only observations available through $t$ are used. Filtered state probabilities at $t$ determine the portfolio for $t+1$.
+
+The RSM stress probability is mapped into the same 80%--20% equity rule as the HMM. Holding the allocation mapping fixed makes differences in portfolio outcomes primarily attributable to differences in regime estimation rather than to different portfolio-construction rules.
+
+\subsection{Machine-learning stress classification}
+
+The machine-learning layer provides a nonlinear test of the incremental information contained in VRP features. Three classifier families are considered: penalized logistic regression, Random Forest, and histogram-based Gradient Boosting. Their role is predictive rather than structural; they do not replace the economic interpretation of the variance premium. This use of flexible prediction methods is consistent with the broader asset-pricing evidence discussed by \textcite{GuKellyXiu2020}.
+
+Two feature sets are compared. The base set contains equity return, bond return, log realized variance, and log implied variance. The VRP-enhanced set additionally contains raw VRP and LogVRP. Comparing otherwise identical models with and without these two variables isolates their incremental predictive contribution.
+
+The stress label is defined within each training sample. A following-month observation is classified as stress when either its equity return lies at or below the 20th percentile of training outcomes or its realized variance lies at or above the 80th percentile:
+
+\begin{equation}
+Stress_{s+1}
+=
+\mathbf{1}
+\left[
+R^{eq}*{s+1}
+\leq
+Q*{0.20}
+\ \text{or}
+RV_{s+1}
+\geq
+Q_{0.80}
+\right].
+\end{equation}
+
+Unlike the HMM and RSM implementations, the ML backtest uses a fixed 72-month rolling training window. At signal date $t$, the current features dated $t$ are observable, but training feature--label pairs end at $t-1$. Each training label refers to the subsequent outcome at $s+1$, and both stress quantiles are recalculated using only the current training window. The predicted probability at $t$ determines portfolio weights for $t+1$.
+
+The same continuous 80%--20% allocation mapping is used. Prediction quality is evaluated separately through ROC-AUC, precision--recall AUC, Brier score, log loss, accuracy, balanced accuracy, precision, and recall. Portfolio performance is evaluated independently because better statistical classification need not imply higher investor welfare.
+
+\subsection{Model-based direct variance-payoff approximation}
+
+The second empirical evidence layer maps variance information more directly into a payoff. It is explicitly a model-based approximation rather than a reconstructed variance-swap backtest.
+
+For settlement month $t$, the variance-strike proxy is lagged implied variance:
+
+\begin{equation}
+K_t^{var}
+=
+IV_{t-1}.
+\end{equation}
+
+The settlement proxy is the realized-variance measure observed at month-end $t$:
+
+\begin{equation}
+RV_t^{settlement}
+=
+RV_t.
+\end{equation}
+
+The normalized short-variance payoff is then
+
+\begin{equation}
+\widetilde{\Pi}_t^{short}
+=
+\frac{
+K_t^{var}
+-
+RV_t^{settlement}
+}{
+K_t^{var}
+}.
+\end{equation}
+
+This quantity is dimensionless. It is not an observed return on invested capital. It is used as the underlying payoff input for the risk-targeted capital mapping.
+
+Four principal specifications are evaluated: a 5% annual-volatility target that is always active; a 10% target that is always active; a 10% target active only when lagged VRP is positive; and a 10% target active only when lagged VRP exceeds a lagged historical median.
+
+For the positive-VRP specification, exposure at settlement $t$ is permitted when $VRP_{t-1}>0$. The signal is therefore known before $RV_t$ is observed.
+
+The High-VRP rule uses a 36-month historical median with at least 24 observations. The median itself is shifted by one additional month. Consequently, at settlement $t$ the threshold uses entry signals corresponding at the latest to $VRP_{t-2}$. The current entry signal $VRP_{t-1}$ and the current settlement outcome are excluded from threshold estimation.
+
+\subsection{Lagged risk targeting and direct-variance costs}
+
+The payoff-volatility estimate is calculated from the normalized short-variance payoff over a 36-month window, with at least 24 observations, and is shifted by one month. At settlement $t$, the risk estimate therefore uses only payoffs realized through $t-1$.
+
+For annual volatility target $\sigma^{target}$, the monthly target is
+
+\begin{equation}
+\sigma^{target}_{m}
+=
+\frac{
+\sigma^{target}
+}{
+\sqrt{12}
+}.
+\end{equation}
+
+The unconstrained target notional is
+
+\begin{equation}
+N_t^{raw}
+=
+\frac{
+\sigma^{target}*{m}
+}{
+\widehat{\sigma}*{t-1}
+}.
+\end{equation}
+
+The implemented notional is non-negative, capped at 0.25, and multiplied by the relevant entry gate. The value 0.25 corresponds to a maximum absolute notional of 25%.
+
+Each modeled variance exposure represents a one-month position that settles and must be renewed. The implementation cost is therefore charged on the full absolute notional entered each month:
+
+\begin{equation}
+Cost_t
+=
+c
+\left|
+N_t
+\right|.
+\end{equation}
+
+The net synthetic direct-variance return is
+
+\begin{equation}
+R_t^{DV,net}
+=
+N_t
+\widetilde{\Pi}_t^{short}
+-
+c
+\left|
+N_t
+\right|,
+\end{equation}
+
+where the baseline cost rate $c$ is 10 basis points. The change $|N_t-N_{t-1}|$ is retained only as a diagnostic and is not used as the economic cost base.
+
+\subsection{Performance, welfare, and statistical inference}
+
+Performance is evaluated using annualized geometric return, annualized volatility, Sharpe ratio, Sortino ratio, maximum drawdown, Calmar ratio, empirical 95% VaR and CVaR, and average turnover.
+
+The Sharpe ratio uses monthly arithmetic mean return, monthly standard deviation, and a zero risk-free rate. The Sortino ratio uses a zero monthly minimum acceptable return. Its downside deviation is calculated over the complete sample, so positive returns contribute zero downside rather than being removed.
+
+Welfare is evaluated using both mean--variance and Constant Relative Risk Aversion certainty equivalents. For monthly return $R_t$ and risk-aversion parameter $\gamma$, the annualized mean--variance certainty equivalent is
+
+\begin{equation}
+CEQ^{MV}
+=
+12
+\left(
+\overline{R}
+-
+\frac{\gamma}{2}
+s_R^2
+\right).
+\end{equation}
+
+The analysis considers $\gamma$ values of 1, 3, 5, and 10. CRRA certainty equivalents are calculated from monthly gross returns $1+R_t$ and are annualized geometrically. The CRRA calculation is used only when all gross returns are strictly positive.
+
+For strategy $s$ and benchmark $b$, the welfare difference is
+
+\begin{equation}
+\Delta CEQ_{s,b}
+=
+CEQ_s
+CEQ_b.
+\end{equation}
+
+Fee-equivalent differences are reported in annual basis points by multiplying $\Delta CEQ$ by 10,000.
+
+Sampling uncertainty is assessed using a paired moving-block bootstrap. Strategy and benchmark returns are resampled jointly so that cross-strategy dependence is preserved. The baseline procedure uses 2,000 bootstrap replications and six-month blocks. Welfare differences are evaluated against both the 60/40 and equal-weighted benchmarks. A strategy is classified as statistically superior only when the lower bound of the corresponding bootstrap confidence interval is above zero.
+
+\subsection{Robustness design and interpretation}
+
+Robustness is evaluated separately for the allocation and direct-payoff channels. Allocation tests examine transaction-cost sensitivity, no-trade bands, and partial rebalancing. Direct-variance robustness varies transaction costs, the payoff-volatility estimation window, notional caps, subperiods, crisis exclusions, and investor risk aversion.
+
+The direct-variance cost grid contains 0, 10, 25, and 50 basis points. Risk-estimation windows of 12, 24, 36, and 60 months are considered. Maximum notionals of 5%, 10%, 15%, 25%, and 50% are tested. Subperiod and crisis-exclusion exercises evaluate whether results are concentrated in a small set of episodes.
+
+Several interpretation rules are maintained throughout the analysis. Allocation and direct-variance strategies are compared only within appropriately aligned samples. The exploratory Pure VRP Proxy is reported separately from the implementable evidence layer. Historical performance is not interpreted as evidence of future profitability.
+
+Most importantly, the direct-variance layer is described throughout as a model-based direct variance-payoff approximation. It does not reconstruct an exact option-replicated variance-swap strike, contractual variance notional, collateral account, variation margin, dealer bid--ask spread, counterparty exposure, or daily mark-to-market path. Its results therefore provide evidence about a stylized variance-carry mechanism rather than a verified historical variance-swap return available to an investor.
