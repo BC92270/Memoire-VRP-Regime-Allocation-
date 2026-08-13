@@ -1,3 +1,16 @@
+from __future__ import annotations
+
+from pathlib import Path
+import re
+
+
+TARGET = Path(
+    "thesis/latex/sections/"
+    "05_robustness.tex"
+)
+
+
+TEXT = r"""
 \section{Robustness and Implementation}
 \label{sec:robustness}
 
@@ -540,3 +553,204 @@ For Europe, the selected VRP-positive strategy survives every principal robustne
 This robustness remains conditional on the modeling framework. The direct-variance layer still uses a volatility-index-based strike proxy, a trailing realized-variance settlement proxy, stylized monthly costs, and no explicit collateral, margin, market-impact, dealer-spread, or intramonth mark-to-market process. Robustness within the approximation does not convert the result into an observed or exactly replicable variance-swap return.
 
 The appropriate conclusion is therefore that the European direct variance-payoff result is robust within the tested model-based framework, whereas the United States evidence is substantially more conditional and the dynamic allocation evidence remains economically close to simple benchmarks.
+""".strip() + "\n"
+
+
+def validate(text: str) -> None:
+    errors: list[str] = []
+
+    required = [
+        "1.055",
+        "23.53",
+        "9.10",
+        "1.303",
+        "0.578",
+        "-50.69",
+        "1.482",
+        "1.132",
+        "1.877",
+        "141",
+        "8.57",
+        "8.90",
+        "0.47",
+        "9.83",
+        (
+            "model-based direct "
+            "variance-payoff approximation"
+        ),
+        (
+            "Robustness within the "
+            "approximation"
+        ),
+    ]
+
+    forbidden = [
+        "collapses in Europe",
+        "collapses in the European",
+        "-2.8511",
+        "-0.3625",
+        "-0.9901",
+        "0.1281",
+        "127 observations",
+        "200 monthly observations",
+        "true variance swap",
+        "directly traded variance",
+        "observed variance-swap return",
+        "return on invested capital",
+        "filecite",
+        "turn124file",
+        "Final robustness analysis pending",
+    ]
+
+    for marker in required:
+        if marker.lower() not in text.lower():
+            errors.append(
+                f"missing required marker: {marker}"
+            )
+
+    for marker in forbidden:
+        if marker.lower() in text.lower():
+            errors.append(
+                f"forbidden/stale marker: {marker}"
+            )
+
+    for environment in (
+        "table",
+        "tabular",
+        "tabularx",
+    ):
+        begin = text.count(
+            rf"\begin{{{environment}}}"
+        )
+        end = text.count(
+            rf"\end{{{environment}}}"
+        )
+
+        if begin != end:
+            errors.append(
+                f"{environment}: "
+                f"{begin} begin / {end} end"
+            )
+
+    if text.count("{") != text.count("}"):
+        errors.append(
+            "unbalanced curly braces: "
+            f"{text.count('{')} / "
+            f"{text.count('}')}"
+        )
+
+    if text.count("$") % 2:
+        errors.append(
+            "odd number of $ delimiters"
+        )
+
+    labels = re.findall(
+        r"\\label\{([^}]+)\}",
+        text,
+    )
+
+    if len(labels) != len(set(labels)):
+        errors.append(
+            "duplicate LaTeX labels"
+        )
+
+    for number, line in enumerate(
+        text.splitlines(),
+        start=1,
+    ):
+        stripped = line.strip()
+
+        if re.match(
+            r"^#{1,6}\s+",
+            stripped,
+        ):
+            errors.append(
+                f"Markdown heading at line {number}"
+            )
+
+        if stripped.startswith("```"):
+            errors.append(
+                f"Markdown fence at line {number}"
+            )
+
+        if (
+            len(stripped) >= 2
+            and set(stripped) == {"="}
+        ):
+            errors.append(
+                f"copy corruption '=' at line {number}"
+            )
+
+        if (
+            len(stripped) >= 2
+            and set(stripped) == {"-"}
+        ):
+            errors.append(
+                f"copy corruption '-' at line {number}"
+            )
+
+        if "S&P" in line:
+            errors.append(
+                f"unescaped S&P at line {number}"
+            )
+
+    if len(text.split()) < 2_200:
+        errors.append(
+            "robustness section unexpectedly short"
+        )
+
+    if len(text.split()) > 4_000:
+        errors.append(
+            "robustness section unexpectedly long"
+        )
+
+    if errors:
+        print("=" * 92)
+        print(
+            "L6 ROBUSTNESS VALIDATION FAILED"
+        )
+        print("=" * 92)
+
+        for error in errors:
+            print(
+                "ERROR —",
+                error,
+            )
+
+        raise SystemExit(1)
+
+
+validate(TEXT)
+
+TARGET.parent.mkdir(
+    parents=True,
+    exist_ok=True,
+)
+
+TARGET.write_text(
+    TEXT,
+    encoding="utf-8",
+)
+
+print("=" * 92)
+print("L6 ROBUSTNESS WRITER")
+print("=" * 92)
+print(
+    f"PASS — wrote {TARGET}"
+)
+print(
+    f"Words: {len(TEXT.split())}"
+)
+print(
+    f"Lines: {len(TEXT.splitlines())}"
+)
+print(
+    "Tables:",
+    TEXT.count(
+        r"\begin{table}"
+    ),
+)
+print(
+    "PASS — numerical, interpretive "
+    "and LaTeX validation completed"
+)
