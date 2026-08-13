@@ -86,7 +86,6 @@ for phrase in forbidden:
 # ============================================================
 
 dangerous = [
-    "return on invested capital",
     "directly traded variance",
     "tradable variance swap strategy",
     "actual variance swap backtest",
@@ -102,6 +101,7 @@ for phrase in dangerous:
 
 required_global = [
     "model-based direct variance-payoff approximation",
+    "not an observed return on invested capital",
     "184",
     "122",
     "232",
