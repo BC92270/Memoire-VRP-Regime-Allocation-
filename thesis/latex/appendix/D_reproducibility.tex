@@ -5,7 +5,11 @@
 
 The empirical project is organized around reusable source modules, execution scripts, generated outputs, and the thesis manuscript. The \texttt{src/} directory contains the principal data, feature, model, portfolio, performance, welfare, and robustness functions. Top-level \texttt{main\_*.py} scripts execute the major empirical stages. Generated tables and charts are stored under \texttt{outputs/tables/} and \texttt{outputs/charts/}, while the final manuscript is maintained under \texttt{thesis/latex/}.
 
-Raw and processed market datasets are treated as local analytical inputs rather than as universally redistributable repository assets. Replication therefore requires access to the relevant original data sources or equivalent local input files when redistribution is not possible.
+Raw and processed market datasets are treated as local analytical inputs rather than as universally redistributable repository assets. In particular, reproducing the European pipeline
+requires supplying an equivalent historical VSTOXX/V2TX series in
+the local raw-data layer before the baseline pipeline is executed;
+the current public Yahoo Finance fallbacks do not reproduce the
+validated long European implied-volatility history. Replication therefore requires access to the relevant original data sources or equivalent local input files when redistribution is not possible.
 
 \subsection{Core empirical sequence}
 
@@ -40,46 +44,3 @@ python main_final_cross_market_report.py
 \end{verbatim}
 
 Each stage writes intermediate or final outputs that are subsequently used by the reporting and thesis layers.
-
-\subsection{Direct-variance outputs}
-
-The direct-variance stage generates market-specific strategy returns, turnover series, payoff diagnostics, performance summaries, benchmark comparisons, and cross-market consolidation tables. The final thesis-facing direct-variance results are drawn from the validated cross-market output tables used elsewhere in the manuscript.
-
-\subsection{Figures}
-
-Figures used in the main manuscript are stored under \texttt{thesis/latex/figures/}. Some are copied from the validated empirical chart outputs and others are regenerated directly from final cross-market thesis tables. This separation ensures that graphical presentation remains tied to the same numerical evidence reported in the tables.
-
-\subsection{Version identification}
-
-The exact code version associated with the submitted thesis can be identified using:
-
-\begin{verbatim}
-git rev-parse HEAD
-\end{verbatim}
-
-The installed Python environment can be archived at submission time using:
-
-\begin{verbatim}
-python -m pip freeze > requirements_thesis_lock.txt
-\end{verbatim}
-
-This provides a record of the package versions used for the final empirical run.
-
-\subsection{Manuscript validation}
-
-The final LaTeX manuscript can be rebuilt using:
-
-\begin{verbatim}
-latexmk -cd -pdf \
-  -interaction=nonstopmode \
-  -halt-on-error \
-  thesis/latex/main.tex
-\end{verbatim}
-
-The global consistency audit is executed using:
-
-\begin{verbatim}
-python main_audit_final_latex_thesis.py
-\end{verbatim}
-
-The audit checks critical numerical markers, model-timing terminology, citation keys, internal references, deprecated empirical conclusions, and the university page limit before the appendices.

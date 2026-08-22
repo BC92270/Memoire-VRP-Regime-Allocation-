@@ -7,11 +7,57 @@ The empirical design separates two distinct uses of variance information. The fi
 
 The analysis covers the United States and Europe. The United States is represented by a broad equity-market series based on the S\&P 500, VIX as the implied-volatility measure, and AGG as the defensive bond asset. Europe is represented by the EURO STOXX 50, VSTOXX/V2TX as the implied-volatility measure, and IEAG.AS as the bond component.
 
+The validated United States pipeline selects SPY for the equity
+component, the CBOE VIX (\texttt{\^{}VIX}) for implied volatility,
+and AGG for the bond component. The validated European pipeline uses
+the EURO STOXX 50 index (\texttt{\^{}STOXX50E}) for equities and
+IEAG.AS for bonds. These programmatically downloaded series are
+obtained through Yahoo Finance using \texttt{yfinance}; where
+applicable, the loader uses automatically adjusted close-like prices.
+The European implied-volatility input is a locally harmonized
+VSTOXX/V2TX historical series because the required long history is
+not reproducible from the current Yahoo Finance interfaces. The raw
+local volatility source is therefore treated as an external analytical
+input rather than a universally redistributable repository asset.
+
+Because the United States equity component is an adjusted ETF series
+whereas the European equity component is an index series, absolute
+cross-market return levels should not be interpreted as a perfectly
+homogeneous total-return comparison. The principal empirical
+inference is conducted within each market against benchmarks
+constructed from the same underlying return series.
+
+
 Raw observations are processed at daily frequency because realized variance requires daily equity returns. Portfolio decisions and performance evaluation are then conducted at monthly frequency. At each month-end, the latest valid volatility features are retained and equity and bond holding-period returns are calculated from month-end prices.
 
 The final validated empirical run ends on 31 July 2026. The United States monthly feature set contains 257 observations and the European feature set contains 195. After the initial estimation requirement and one-step-ahead alignment, the common allocation samples contain 184 observations in the United States and 122 in Europe. The direct variance-payoff panels contain 256 and 194 valid settlement observations, respectively. After lagged risk estimation and common-strategy alignment, the corresponding direct-variance strategy samples contain 232 observations in the United States and 170 in Europe.
 
 The two evidence layers are always evaluated on their own internally aligned samples. Performance statistics from the allocation sample are therefore not mechanically ranked against statistics from the direct-variance sample.
+
+Table~\ref{tab:sample_architecture} summarizes the final sample structure used across the empirical layers.
+
+\begin{table}[htbp]
+\centering
+\caption{Final empirical sample architecture}
+\label{tab:sample_architecture}
+\small
+\begin{tabular}{lrrll}
+\toprule
+Evidence layer & US obs. & EU obs. & US start & EU start \\
+\midrule
+Monthly feature set & 257 & 195 & 2005-03-31 & 2009-05-31 \\
+Allocation OOS sample & 184 & 122 & 2011-04-30 & 2015-06-30 \\
+Direct payoff diagnostics & 256 & 194 & 2005-04-30 & 2009-06-30 \\
+Direct strategy sample & 232 & 170 & 2007-04-30 & 2011-06-30 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4em}
+\begin{minipage}{0.92\textwidth}
+\footnotesize
+All final samples end on 31 July 2026. Allocation and direct-variance statistics are evaluated on their own internally aligned samples and are not mechanically ranked across evidence layers.
+\end{minipage}
+\end{table}
 
 \subsection{Return construction and variance measures}
 
@@ -89,15 +135,93 @@ This benchmark design follows the principle that model complexity should be eval
 
 \subsection{Hidden Markov Model allocation}
 
-The first regime framework is a two-state Gaussian Hidden Markov Model. The model follows the latent-state logic introduced by \textcite{Hamilton1989}, but it is applied here to financial state identification rather than macroeconomic regime dating.
+The first regime framework is a two-state Gaussian Hidden Markov Model (HMM). Let
+$S_t \in \{1,2\}$ denote the unobserved regime at month $t$. Regime transitions follow a
+first-order Markov chain,
 
-Input features are standardized within each estimation sample. The principal specifications are HMM RV, HMM RV + Raw VRP, and HMM RV + Log VRP. They combine monthly equity returns with log realized variance and, where applicable, one of the VRP transformations. Additional implied-volatility specifications are used as specification-grid diagnostics.
+\begin{equation}
+\Pr(S_t=j \mid S_{t-1}=i)
+=
+p_{ij},
+\qquad
+P
+=
+\begin{pmatrix}
+p_{11} & p_{12} \\
+p_{21} & p_{22}
+\end{pmatrix},
+\qquad
+\sum_{j=1}^{2} p_{ij}=1.
+\end{equation}
 
-The Gaussian HMM uses two latent states and a diagonal covariance structure. Because numerical state labels have no inherent economic meaning, the stress state is identified ex post within each estimation sample as the state associated with the highest average realized variance.
+Let $\mathbf{z}_t$ denote the vector of standardized observed features. Conditional on the latent
+state, the observation equation is Gaussian,
 
-A crucial timing feature is that the HMM does not use full-sample state estimates. The out-of-sample exercise begins only after 72 monthly observations are available. At each subsequent signal date $t$, the model is re-estimated using all observations available from the beginning of the sample through $t$. The estimation history therefore expands recursively after the 72-month burn-in. No future observation enters the state estimate used for the next holding period.
+\begin{equation}
+\mathbf{z}_t
+\mid
+S_t=k
+\sim
+\mathcal{N}
+\left(
+\boldsymbol{\mu}_k,
+\boldsymbol{\Sigma}_k
+\right),
+\qquad
+k\in\{1,2\},
+\end{equation}
 
-Let $p_t^{stress}$ denote the filtered probability of the identified stress state. The equity allocation is
+where $\boldsymbol{\Sigma}_k$ is restricted to be diagonal. This restriction reduces the number
+of covariance parameters and improves stability in repeated out-of-sample estimation.
+
+The parameter vector
+$\theta=\{P,\boldsymbol{\mu}_1,\boldsymbol{\mu}_2,
+\boldsymbol{\Sigma}_1,\boldsymbol{\Sigma}_2\}$
+is estimated by maximum likelihood,
+
+\begin{equation}
+\widehat{\theta}
+=
+\arg\max_{\theta}
+\log
+p
+\left(
+\mathbf{z}_1,\ldots,\mathbf{z}_T
+\mid
+\theta
+\right),
+\end{equation}
+
+using the expectation--maximization procedure implemented by
+\texttt{GaussianHMM}. The implementation uses two components, diagonal covariance matrices,
+a maximum of 300 estimation iterations, a convergence tolerance of $10^{-3}$, a minimum
+covariance floor of $10^{-5}$, and a fixed random seed for reproducibility.
+
+Three principal information sets are evaluated:
+
+\begin{itemize}
+    \item \textbf{HMM RV:}
+    monthly equity return and log realized variance;
+
+    \item \textbf{HMM RV + Raw VRP:}
+    monthly equity return, log realized variance, and the raw VRP proxy;
+
+    \item \textbf{HMM RV + Log VRP:}
+    monthly equity return, log realized variance, and the relative log implied-to-realized
+    variance measure.
+\end{itemize}
+
+All HMM input variables are standardized inside the estimation sample. Because numerical HMM
+state labels have no intrinsic economic meaning, the stress state is identified separately at each
+estimation date as the estimated state with the highest average realized variance.
+
+The out-of-sample exercise begins after 72 monthly observations. At each signal date $t$, the
+model is re-estimated on an expanding sample containing only observations available through
+$t$. The posterior probability of the stress state at the final observation of this sample is therefore
+the relevant filtered endpoint probability for the portfolio decision. No observation dated after
+$t$ enters the allocation for $t+1$.
+
+Let $p_t^{stress}$ denote this stress probability. The equity allocation is
 
 \begin{equation}
 w_t^{eq}
@@ -105,7 +229,7 @@ w_t^{eq}
 0.80
 -
 0.60
-p_t^{stress}.
+p_t^{stress},
 \end{equation}
 
 and the bond allocation is
@@ -118,44 +242,219 @@ w_t^{bond}
 w_t^{eq}.
 \end{equation}
 
-Equity exposure therefore varies continuously between 80\% when the estimated stress probability is zero and 20\% when it is one. The portfolio return is realized in the following month.
+Equity exposure therefore varies continuously from 80\% when the estimated stress probability
+is zero to 20\% when it is one. The portfolio return is realized during the following month.
 
 \subsection{Markov-switching regression}
 
-The second regime model is a two-regime Markov-switching regression. Monthly equity return is the dependent variable. Depending on the specification, the model includes no exogenous volatility variable, log realized variance, log realized variance with raw VRP, or log realized variance with LogVRP.
+The second regime framework is a two-regime Markov-switching regression (RSM). Unlike the
+HMM, which models the joint distribution of a feature vector, the RSM directly models monthly
+equity returns conditional on the latent regime and a set of exogenous state variables.
 
-The dependent variable and exogenous regressors are standardized within each estimation sample. The regression allows regime-dependent intercepts, exogenous coefficients, and variance. The stress regime is again defined as the regime associated with the highest average realized variance.
+Let $S_t\in\{1,2\}$ follow the same first-order Markov transition structure,
 
-As with the HMM, estimation begins after a 72-month burn-in and then uses an expanding information set. At date $t$, only observations available through $t$ are used. Filtered state probabilities at $t$ determine the portfolio for $t+1$.
+\begin{equation}
+\Pr(S_t=j\mid S_{t-1}=i)
+=
+p_{ij}.
+\end{equation}
 
-The RSM stress probability is mapped into the same 80\%--20\% equity rule as the HMM. Holding the allocation mapping fixed makes differences in portfolio outcomes primarily attributable to differences in regime estimation rather than to different portfolio-construction rules.
+Conditional on regime $S_t=k$, the return equation is
+
+\begin{equation}
+R_t^{eq}
+=
+\alpha_k
++
+\boldsymbol{\beta}_k^{\prime}
+\mathbf{x}_t
++
+\varepsilon_{t,k},
+\end{equation}
+
+with
+
+\begin{equation}
+\varepsilon_{t,k}
+\sim
+\mathcal{N}
+\left(
+0,
+\sigma_k^2
+\right).
+\end{equation}
+
+The intercept $\alpha_k$, all included exogenous coefficients
+$\boldsymbol{\beta}_k$, and the conditional variance $\sigma_k^2$ are allowed to switch across
+regimes. Monthly equity returns and all exogenous regressors are standardized within each
+estimation sample.
+
+Four specifications are estimated:
+
+\begin{itemize}
+    \item \textbf{RSM Returns Only:}
+    regime-dependent equity-return dynamics without exogenous volatility variables;
+
+    \item \textbf{RSM RV:}
+    log realized variance as the exogenous state variable;
+
+    \item \textbf{RSM RV + Raw VRP:}
+    log realized variance and the raw VRP proxy;
+
+    \item \textbf{RSM RV + Log VRP:}
+    log realized variance and the log implied-to-realized variance ratio.
+\end{itemize}
+
+Parameters and transition probabilities are estimated by maximum likelihood using the Markov regression implementation in \texttt{statsmodels}. The numerical procedure uses 10 expectation--maximization
+iterations to initialize the likelihood optimization and permits up to 300 subsequent
+optimization iterations. Intercepts, exogenous coefficients, and conditional variances are all
+specified as regime dependent.
+
+Filtered marginal state probabilities are computed after estimation. As for the HMM, the stress
+regime is not assigned from the arbitrary numerical state label: it is defined as the regime with
+the highest average realized variance in the corresponding estimation sample.
+
+The RSM uses the same 72-month initial estimation requirement and the same expanding
+out-of-sample information set as the HMM. At signal date $t$, estimation uses data only through
+$t$, the filtered stress probability at $t$ determines the allocation, and portfolio performance is
+realized at $t+1$.
+
+To isolate differences in regime estimation from differences in portfolio construction, the RSM
+probability is mapped into the same allocation rule,
+
+\begin{equation}
+w_t^{eq}
+=
+0.80
+-
+0.60
+p_t^{stress},
+\qquad
+w_t^{bond}
+=
+1-w_t^{eq}.
+\end{equation}
 
 \subsection{Machine-learning stress classification}
 
-The machine-learning layer provides a nonlinear test of the incremental information contained in VRP features. Three classifier families are considered: penalized logistic regression, Random Forest, and histogram-based Gradient Boosting. The Random Forest specification follows the ensemble-tree framework introduced by \textcite{Breiman2001}. Their role is predictive rather than structural; they do not replace the economic interpretation of the variance premium. This use of flexible prediction methods is consistent with the broader asset-pricing evidence discussed by \textcite{GuKellyXiu2020}.
+The machine-learning layer provides a nonlinear test of whether VRP variables contain
+incremental information for predicting adverse market states. Three classifier families are
+estimated: L2-penalized logistic regression, Random Forest, and histogram-based Gradient
+Boosting. Their role is predictive rather than structural; they do not replace the economic
+interpretation of the variance premium. The use of flexible prediction methods is consistent
+with the broader asset-pricing evidence discussed by \textcite{GuKellyXiu2020}.
 
-Two feature sets are compared. The base set contains equity return, bond return, log realized variance, and log implied variance. The VRP-enhanced set additionally contains raw VRP and LogVRP. Comparing otherwise identical models with and without these two variables isolates their incremental predictive contribution.
+Two feature sets are compared. The \textbf{Base} information set contains monthly equity return,
+bond return, log realized variance, and log implied variance. The \textbf{VRP-enhanced} set adds
+raw VRP and the log implied-to-realized variance ratio. Each classifier is estimated with both
+sets, yielding six ML specifications.
 
-The stress label is defined within each training sample. A following-month observation is classified as stress when either its equity return lies at or below the 20th percentile of training outcomes or its realized variance lies at or above the 80th percentile:
+The stress label is generated strictly inside each training sample. An observation at $s+1$ is
+classified as stress when either the following-month equity return is at or below the 20th
+percentile of the current training distribution or following-month realized variance is at or above
+the 80th percentile:
 
 \begin{equation}
-Stress_{s+1}
+Y_{s+1}
 =
 \mathbf{1}
 \left[
 R^{eq}_{s+1}
 \leq
 Q_{0.20}
-\ \text{or}
+\ \text{or}\
 RV_{s+1}
 \geq
 Q_{0.80}
 \right].
 \end{equation}
 
-Unlike the HMM and RSM implementations, the ML backtest uses a fixed 72-month rolling training window. At signal date $t$, the current features dated $t$ are observable, but training feature--label pairs end at $t-1$. Each training label refers to the subsequent outcome at $s+1$, and both stress quantiles are recalculated using only the current training window. The predicted probability at $t$ determines portfolio weights for $t+1$.
+For the logistic specification, the conditional stress probability is
 
-The same continuous 80\%--20\% allocation mapping is used. Prediction quality is evaluated separately through ROC-AUC, precision--recall AUC, Brier score, log loss, accuracy, balanced accuracy, precision, and recall. Portfolio performance is evaluated independently because better statistical classification need not imply higher investor welfare.
+\begin{equation}
+\Pr
+\left(
+Y_{t+1}=1
+\mid
+\mathbf{x}_t
+\right)
+=
+\Lambda
+\left(
+\beta_0
++
+\boldsymbol{\beta}^{\prime}
+\mathbf{x}_t
+\right),
+\qquad
+\Lambda(a)
+=
+\frac{1}{1+e^{-a}},
+\end{equation}
+
+and the coefficients are estimated with an L2 penalty. The implementation uses
+$C=0.50$, balanced class weights, the \texttt{lbfgs} optimizer, and a maximum of 2,000
+iterations.
+
+For the Random Forest, the predicted stress probability is the average probability across
+$B$ classification trees,
+
+\begin{equation}
+\widehat{p}_t^{RF}
+=
+\frac{1}{B}
+\sum_{b=1}^{B}
+\widehat{p}_{t,b},
+\end{equation}
+
+with $B=200$ trees. Trees are restricted to maximum depth 3, require at least eight
+observations per terminal leaf, use square-root feature subsampling, bootstrap samples, and
+balanced-subsample class weights. These restrictions deliberately limit tree complexity in the
+small rolling samples.
+
+The histogram Gradient Boosting classifier constructs an additive score,
+
+\begin{equation}
+F_M(\mathbf{x})
+=
+F_0(\mathbf{x})
++
+\eta
+\sum_{m=1}^{M}
+f_m(\mathbf{x}),
+\end{equation}
+
+which is mapped into a class probability by the logistic link. The implementation uses learning
+rate $\eta=0.05$, $M=100$ boosting iterations, maximum tree depth 2, at most seven leaf nodes,
+a minimum of ten observations per leaf, L2 regularization equal to 1, balanced class weights,
+and no early stopping.
+
+Unlike the HMM and RSM, the ML exercise uses a fixed 72-month rolling training window.
+At signal date $t$, features dated $t$ are observable but training feature--label pairs terminate at
+$t-1$. Each training label uses the subsequent outcome at $s+1$, and both stress thresholds are
+re-estimated using only the current rolling window. The predicted probability at $t$ is therefore
+genuinely one-step-ahead.
+
+All three classifier families use the same probability-to-portfolio mapping,
+
+\begin{equation}
+w_t^{eq}
+=
+0.80
+-
+0.60
+\widehat{p}_t^{stress},
+\qquad
+w_t^{bond}
+=
+1-w_t^{eq}.
+\end{equation}
+
+Prediction quality is evaluated separately through ROC-AUC, precision--recall AUC, Brier
+score, log loss, accuracy, balanced accuracy, precision, and recall. Portfolio performance is then
+evaluated independently because superior classification does not necessarily imply superior
+investor welfare. The final model-family leaders used in the empirical comparison are reported in
+Appendix~\ref{app:model-results}.
 
 \subsection{Model-based direct variance-payoff approximation}
 

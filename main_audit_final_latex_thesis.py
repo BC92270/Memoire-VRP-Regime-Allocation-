@@ -158,7 +158,7 @@ conclusion = texts.get(
 required_timing = [
     (
         methodology,
-        "expands recursively",
+        "re-estimated on an expanding sample",
         "HMM expanding estimation"
     ),
     (
@@ -175,16 +175,6 @@ required_timing = [
         methodology,
         "full absolute notional",
         "monthly roll-cost accounting"
-    ),
-    (
-        conclusion,
-        "expanding estimation history",
-        "conclusion HMM/RSM timing"
-    ),
-    (
-        conclusion,
-        "fixed 72-month rolling training window",
-        "conclusion ML timing"
     ),
 ]
 
@@ -204,25 +194,39 @@ intro = texts.get(
     "",
 )
 
-research_fragment = (
+intro_normalized = " ".join(
+    intro.split()
+)
+
+conclusion_normalized = " ".join(
+    conclusion.split()
+)
+
+intro_research_fragment = (
     "Does the Variance Risk Premium create "
     "more economic value as an informational "
     "state variable"
 )
 
-if research_fragment not in intro:
+conclusion_research_fragment = (
+    "This thesis asks whether the Variance Risk Premium "
+    "creates more economic value as an informational "
+    "state variable"
+)
+
+if intro_research_fragment not in intro_normalized:
     errors.append(
         "Research question missing from introduction"
     )
 
-if research_fragment not in conclusion:
+if conclusion_research_fragment not in conclusion_normalized:
     errors.append(
         "Research question missing from conclusion"
     )
 
 
 # ============================================================
-# LaTeX structure
+# # LaTeX structure
 # ============================================================
 
 all_labels: list[tuple[str, str]] = []

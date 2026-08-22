@@ -1,30 +1,9 @@
 \section{Data Construction and Diagnostics}
 \label{app:data}
 
-This appendix summarizes the empirical sample architecture and the principal diagnostics used to validate the variance-payoff construction. It distinguishes the monthly allocation panel from the longer settlement panel used for the model-based direct variance-payoff approximation.
+This appendix reports supplementary diagnostics used to validate the variance-payoff construction. The architecture of the final empirical samples is reported in Table~\ref{tab:sample_architecture} in the main text.
 
-\begin{table}[H]
-\centering
-\caption{Final empirical sample architecture}
-\label{tab:appendix_sample_architecture}
-\small
-\begin{tabular}{lrrll}
-\toprule
-Evidence layer & US obs. & EU obs. & US start & EU start \\
-\midrule
-Monthly feature set & 257 & 195 & 2005-03-31 & 2009-05-31 \\
-Allocation OOS sample & 184 & 122 & 2011-04-30 & 2015-06-30 \\
-Direct payoff diagnostics & 256 & 194 & 2005-04-30 & 2009-06-30 \\
-Direct strategy sample & 232 & 170 & 2007-04-30 & 2011-06-30 \\
-\bottomrule
-\end{tabular}
 
-\vspace{0.4em}
-\begin{minipage}{0.92\textwidth}
-\footnotesize
-All final samples end on 31 July 2026. Allocation and direct-variance statistics are evaluated on their own internally aligned samples and are not mechanically ranked across evidence layers.
-\end{minipage}
-\end{table}
 
 Daily equity and bond log returns are constructed from consecutive prices. Returns spanning more than seven calendar days are invalidated before volatility estimation. Realized variance uses a complete trailing 21-observation window and is annualized before month-end sampling. The volatility-index level is converted into an implied-variance proxy by squaring decimal VIX or VSTOXX volatility.
 

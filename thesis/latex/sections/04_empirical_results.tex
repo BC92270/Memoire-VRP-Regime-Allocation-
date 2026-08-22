@@ -5,6 +5,8 @@ This section evaluates the two empirical channels defined previously. The first 
 
 The allocation comparison contains 184 out-of-sample observations in the United States and 122 in Europe. The direct-variance strategy comparison contains 232 observations in the United States and 170 in Europe. The underlying payoff diagnostics contain 256 settlement observations in the United States and 194 in Europe. All comparisons below therefore preserve the sample appropriate to the evidence layer being discussed.
 
+For descriptive comparison, the reported model-family leaders are selected ex post from the evaluated out-of-sample specification set. Their ranking should therefore not be interpreted as the outcome of a pre-specified model-selection rule.
+
 Figure~\ref{fig:vrp-components} provides descriptive context for the variance measures used throughout the empirical analysis. The panels display the implied- and realized-variance components underlying the empirical VRP construction in the two markets. The purpose of the figure is descriptive rather than causal: it illustrates the time variation of the variance measures that subsequently enter the allocation and direct-payoff exercises.
 
 \begin{figure}[htbp]
@@ -28,6 +30,48 @@ Figure~\ref{fig:vrp-components} provides descriptive context for the variance me
 
 \caption{Implied variance, realized variance, and empirical VRP components}
 \label{fig:vrp-components}
+\end{figure}
+
+Before turning to the summary statistics, Figure~\ref{fig:allocation-cumulative} displays the cumulative paths of the final implementable allocation comparisons in both markets. Presenting the strategy paths first provides a visual description of relative performance and drawdown behavior before the numerical tables are considered.
+
+\begin{figure}[htbp]
+\centering
+
+\begin{subfigure}[t]{0.49\textwidth}
+\centering
+\includegraphics[
+    width=\linewidth
+]{us_final_implementable_cumulative_returns.png}
+\caption{United States}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.49\textwidth}
+\centering
+\includegraphics[
+    width=\linewidth
+]{eu_final_implementable_cumulative_returns.png}
+\caption{Europe}
+\end{subfigure}
+
+\caption{Cumulative performance of the final implementable allocation comparisons}
+\label{fig:allocation-cumulative}
+\end{figure}
+
+
+Figure~\ref{fig:historical-equity-indices} provides complementary market context by showing
+the cumulative evolution of the equity components used in the allocation exercise. Each series
+is normalized to 100 at the beginning of its corresponding out-of-sample allocation period.
+The figure is descriptive: because the United States and European allocation samples begin at
+different dates, the two normalized paths should not be interpreted as a common-period
+performance comparison.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[
+    width=0.88\textwidth
+]{historical_equity_indices.png}
+\caption{Historical evolution of the equity-market components used in the allocation exercise}
+\label{fig:historical-equity-indices}
 \end{figure}
 
 \subsection{Equity--bond allocation: United States}
@@ -215,30 +259,7 @@ The role of VRP is also model dependent. HMM RV + Log VRP is the strongest HMM i
 
 The allocation layer therefore provides evidence that variance information can affect estimated states and selected portfolio-risk characteristics, but it does not establish a universal allocation premium.
 
-Figure~\ref{fig:allocation-cumulative} complements the summary statistics by displaying cumulative performance for the final implementable allocation comparisons. The visual evidence reinforces the table-based conclusion: the dynamic models can alter the path and drawdown profile of wealth, but they do not generate uniform cross-market dominance over the simple benchmarks.
 
-\begin{figure}[htbp]
-\centering
-
-\begin{subfigure}[t]{0.49\textwidth}
-\centering
-\includegraphics[
-    width=\linewidth
-]{us_final_implementable_cumulative_returns.png}
-\caption{United States}
-\end{subfigure}
-\hfill
-\begin{subfigure}[t]{0.49\textwidth}
-\centering
-\includegraphics[
-    width=\linewidth
-]{eu_final_implementable_cumulative_returns.png}
-\caption{Europe}
-\end{subfigure}
-
-\caption{Cumulative performance of the final implementable allocation comparisons}
-\label{fig:allocation-cumulative}
-\end{figure}
 
 \subsection{Underlying direct variance-payoff diagnostics}
 

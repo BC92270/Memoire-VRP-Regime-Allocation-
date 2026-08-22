@@ -17,7 +17,7 @@ for directory in [
 
 
 START_DATE = "2005-01-01"
-END_DATE = "2026-02-28"
+END_DATE = "2026-08-01"
 
 # MVP design:
 # US should work immediately.
